@@ -1,81 +1,71 @@
-// Package api defines HTTP routes and handlers.
-//
-// We use chi (github.com/go-chi/chi) as our HTTP router.
-// Why chi instead of the stdlib net/http?
-// Go's stdlib ServeMux is solid but lacks: path parameters (/services/:id),
-// middleware chaining, and route grouping. chi adds exactly these features
-// while staying compatible with net/http interfaces — every chi handler is
-// a standard http.Handler. No magic, no code generation, no framework lock-in.
 package api
 
 import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	chimw "github.com/go-chi/chi/v5/middleware"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/bolaabanjo/statuskeet/internal/config"
+	"github.com/bolaabanjo/statuskeet/internal/middleware"
+	"github.com/bolaabanjo/statuskeet/internal/repository"
+	"github.com/bolaabanjo/statuskeet/internal/service"
 )
 
-func NewRouter(cfg *config.Config) http.Handler {
+func NewRouter(cfg *config.Config, pool *pgxpool.Pool) http.Handler {
 	r := chi.NewRouter()
 
-	// --- Middleware stack ---
-	// Middleware runs on EVERY request, in order. Think of it as a pipeline:
-	// Request → Logger → Recoverer → RealIP → Your Handler → Response
-	//
-	// Each middleware can inspect/modify the request, call the next handler,
-	// then inspect/modify the response.
+	r.Use(chimw.RequestID)
+	r.Use(chimw.RealIP)
+	r.Use(chimw.Logger)
+	r.Use(chimw.Recoverer)
 
-	// RequestID: Assigns a unique ID to each request. Essential for tracing
-	// a single request across log lines when debugging production issues.
-	r.Use(middleware.RequestID)
-
-	// RealIP: Extracts the client's real IP from X-Forwarded-For or
-	// X-Real-IP headers. Behind a load balancer, RemoteAddr is the LB's IP,
-	// not the client's. This fixes that.
-	r.Use(middleware.RealIP)
-
-	// Logger: Logs every request with method, path, status code, and duration.
-	// In production, you'd replace this with a custom structured logger.
-	r.Use(middleware.Logger)
-
-	// Recoverer: Catches panics in handlers and returns 500 instead of
-	// crashing the entire server. A single bad request should never bring
-	// down the process.
-	r.Use(middleware.Recoverer)
-
-	// --- Health check ---
-	// Every production service needs a health endpoint. Load balancers,
-	// Kubernetes, and monitoring tools hit this to know if the server is alive.
-	// It should be fast, simple, and always respond.
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"status":"ok"}`))
 	})
 
-	// API v1 routes will go here as we build them
+	// Repositories
+	userRepo := repository.NewUserRepo(pool)
+	orgRepo := repository.NewOrgRepo(pool)
+	apiKeyRepo := repository.NewAPIKeyRepo(pool)
+	serviceRepo := repository.NewServiceRepo(pool)
+	checkResultRepo := repository.NewCheckResultRepo(pool)
+	incidentRepo := repository.NewIncidentRepo(pool)
+
+	// Services
+	authService := service.NewAuthService(pool, userRepo, orgRepo, cfg.JWTSecret)
+	apiKeyService := service.NewAPIKeyService(apiKeyRepo)
+	statusEvaluator := service.NewStatusEvaluator(checkResultRepo, serviceRepo)
+	incidentManager := service.NewIncidentManager(incidentRepo)
+
+	// Handlers
+	authHandler := NewAuthHandler(authService, apiKeyService, orgRepo)
+	serviceHandler := NewServiceHandler(serviceRepo, orgRepo)
+	heartbeatHandler := NewHeartbeatHandler(checkResultRepo, serviceRepo, statusEvaluator, incidentManager)
+
 	r.Route("/v1", func(r chi.Router) {
-		// Public routes (no auth)
-		// r.Post("/auth/signup", ...)
-		// r.Post("/auth/login", ...)
+		// Public auth routes
+		r.Post("/auth/signup", authHandler.Signup)
+		r.Post("/auth/login", authHandler.Login)
 
 		// SDK routes (API key auth)
-		// r.Group(func(r chi.Router) {
-		//     r.Use(APIKeyAuth)
-		//     r.Post("/heartbeat", ...)
-		//     r.Post("/services/register", ...)
-		// })
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.APIKeyAuth(apiKeyService))
+			r.Post("/services/register", serviceHandler.Register)
+			r.Post("/heartbeat", heartbeatHandler.Ingest)
+		})
 
 		// Dashboard routes (JWT auth)
-		// r.Group(func(r chi.Router) {
-		//     r.Use(JWTAuth)
-		//     r.Get("/services", ...)
-		//     r.Get("/incidents", ...)
-		// })
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.JWTAuth(authService))
+			r.Post("/org/api-keys", authHandler.CreateAPIKey)
+			r.Get("/services", serviceHandler.List)
+		})
 
 		// Public status page routes (no auth)
-		// r.Get("/public/{orgSlug}/status", ...)
+		// GET /v1/public/{orgSlug}/status — coming later
 	})
 
 	return r

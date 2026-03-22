@@ -1,0 +1,122 @@
+package repository
+
+import (
+	"context"
+
+	"github.com/bolaabanjo/statuskeet/internal/database"
+	"github.com/bolaabanjo/statuskeet/internal/models"
+	"github.com/google/uuid"
+)
+
+type ServiceRepo struct {
+	db database.Querier
+}
+
+func NewServiceRepo(db database.Querier) *ServiceRepo {
+	return &ServiceRepo{db: db}
+}
+
+// Upsert creates a service or updates it if one with the same (org_id, name) already exists.
+func (r *ServiceRepo) Upsert(ctx context.Context, s *models.Service) (*models.Service, error) {
+	result := &models.Service{}
+	err := r.db.QueryRow(ctx,
+		`INSERT INTO services (org_id, name, description, service_type, url, check_interval, timeout, expected_status, criticality)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		 ON CONFLICT (org_id, name) DO UPDATE SET
+		   description = EXCLUDED.description,
+		   service_type = EXCLUDED.service_type,
+		   url = EXCLUDED.url,
+		   check_interval = EXCLUDED.check_interval,
+		   timeout = EXCLUDED.timeout,
+		   expected_status = EXCLUDED.expected_status,
+		   criticality = EXCLUDED.criticality,
+		   updated_at = now()
+		 RETURNING id, org_id, name, description, service_type, url, check_interval, timeout,
+		   expected_status, criticality, current_status, display_order, visible, created_at, updated_at`,
+		s.OrgID, s.Name, s.Description, s.ServiceType, s.URL,
+		s.CheckInterval, s.Timeout, s.ExpectedStatus, s.Criticality,
+	).Scan(
+		&result.ID, &result.OrgID, &result.Name, &result.Description, &result.ServiceType,
+		&result.URL, &result.CheckInterval, &result.Timeout, &result.ExpectedStatus,
+		&result.Criticality, &result.CurrentStatus, &result.DisplayOrder, &result.Visible,
+		&result.CreatedAt, &result.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *ServiceRepo) GetByOrgID(ctx context.Context, orgID uuid.UUID) ([]models.Service, error) {
+	rows, err := r.db.Query(ctx,
+		`SELECT id, org_id, name, description, service_type, url, check_interval, timeout,
+		   expected_status, criticality, current_status, display_order, visible, created_at, updated_at
+		 FROM services WHERE org_id = $1 ORDER BY display_order, name`,
+		orgID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var services []models.Service
+	for rows.Next() {
+		var s models.Service
+		if err := rows.Scan(
+			&s.ID, &s.OrgID, &s.Name, &s.Description, &s.ServiceType,
+			&s.URL, &s.CheckInterval, &s.Timeout, &s.ExpectedStatus,
+			&s.Criticality, &s.CurrentStatus, &s.DisplayOrder, &s.Visible,
+			&s.CreatedAt, &s.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		services = append(services, s)
+	}
+	return services, rows.Err()
+}
+
+func (r *ServiceRepo) GetByID(ctx context.Context, id uuid.UUID) (*models.Service, error) {
+	s := &models.Service{}
+	err := r.db.QueryRow(ctx,
+		`SELECT id, org_id, name, description, service_type, url, check_interval, timeout,
+		   expected_status, criticality, current_status, display_order, visible, created_at, updated_at
+		 FROM services WHERE id = $1`,
+		id,
+	).Scan(
+		&s.ID, &s.OrgID, &s.Name, &s.Description, &s.ServiceType,
+		&s.URL, &s.CheckInterval, &s.Timeout, &s.ExpectedStatus,
+		&s.Criticality, &s.CurrentStatus, &s.DisplayOrder, &s.Visible,
+		&s.CreatedAt, &s.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return s, nil
+}
+
+func (r *ServiceRepo) GetByName(ctx context.Context, orgID uuid.UUID, name string) (*models.Service, error) {
+	s := &models.Service{}
+	err := r.db.QueryRow(ctx,
+		`SELECT id, org_id, name, description, service_type, url, check_interval, timeout,
+		   expected_status, criticality, current_status, display_order, visible, created_at, updated_at
+		 FROM services WHERE org_id = $1 AND name = $2`,
+		orgID, name,
+	).Scan(
+		&s.ID, &s.OrgID, &s.Name, &s.Description, &s.ServiceType,
+		&s.URL, &s.CheckInterval, &s.Timeout, &s.ExpectedStatus,
+		&s.Criticality, &s.CurrentStatus, &s.DisplayOrder, &s.Visible,
+		&s.CreatedAt, &s.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return s, nil
+}
+
+func (r *ServiceRepo) UpdateStatus(ctx context.Context, id uuid.UUID, status string) error {
+	_, err := r.db.Exec(ctx,
+		`UPDATE services SET current_status = $1, updated_at = now() WHERE id = $2`,
+		status, id,
+	)
+	return err
+}
