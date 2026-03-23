@@ -220,11 +220,16 @@ export function BlockBorder({
   return (
     <Tag
       className={`relative overflow-hidden border ${className}`}
-      style={{
-        borderColor: lineColor,
-        ...(gradients ? { backgroundImage: gradients } : {}),
-      }}
+      style={{ borderColor: lineColor }}
     >
+      {/* Grid overlay — hidden on mobile */}
+      {gradients && (
+        <div
+          className="absolute inset-0 pointer-events-none hidden md:block"
+          style={{ backgroundImage: gradients }}
+          aria-hidden="true"
+        />
+      )}
       {children}
 
       {crosses && (

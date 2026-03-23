@@ -34,6 +34,7 @@ func NewRouter(cfg *config.Config, pool *pgxpool.Pool) http.Handler {
 	serviceRepo := repository.NewServiceRepo(pool)
 	checkResultRepo := repository.NewCheckResultRepo(pool)
 	incidentRepo := repository.NewIncidentRepo(pool)
+	onboardingRepo := repository.NewOnboardingRepo(pool)
 
 	// Services
 	authService := service.NewAuthService(pool, userRepo, orgRepo, cfg.JWTSecret)
@@ -46,6 +47,7 @@ func NewRouter(cfg *config.Config, pool *pgxpool.Pool) http.Handler {
 	serviceHandler := NewServiceHandler(serviceRepo, orgRepo)
 	heartbeatHandler := NewHeartbeatHandler(checkResultRepo, serviceRepo, statusEvaluator, incidentManager)
 	publicHandler := NewPublicHandler(orgRepo, serviceRepo, incidentRepo, checkResultRepo)
+	onboardingHandler := NewOnboardingHandler(onboardingRepo, orgRepo)
 
 	r.Route("/v1", func(r chi.Router) {
 		// Public auth routes
@@ -64,6 +66,8 @@ func NewRouter(cfg *config.Config, pool *pgxpool.Pool) http.Handler {
 			r.Use(middleware.JWTAuth(authService))
 			r.Post("/org/api-keys", authHandler.CreateAPIKey)
 			r.Get("/services", serviceHandler.List)
+			r.Post("/onboarding", onboardingHandler.Complete)
+			r.Get("/onboarding", onboardingHandler.Status)
 		})
 
 		// Public status page routes (no auth)

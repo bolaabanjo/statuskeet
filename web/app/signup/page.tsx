@@ -24,7 +24,7 @@ export default function SignupPage() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("org", JSON.stringify(data.organization));
-      router.push("/dashboard");
+      router.push("/onboarding");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed");
     } finally {
@@ -35,7 +35,7 @@ export default function SignupPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-background px-4 font-sans">
       <div className="w-full max-w-sm text-center">
-        <Image src="/S.png" alt="StatusKeet" width={28} height={28} className="mx-auto mb-4" />
+        <Image src="/s.png" alt="StatusKeet" width={28} height={28} className="mx-auto mb-4" />
         <h1 className="text-lg font-semibold text-white mb-1">
           Welcome to StatusKeet
         </h1>

@@ -132,6 +132,43 @@ export async function signup(
   return res.json();
 }
 
+export interface OnboardingRequest {
+  first_name: string;
+  last_name: string;
+  company_size: string;
+  role: string;
+  use_cases: string[];
+}
+
+export async function completeOnboarding(
+  token: string,
+  data: OnboardingRequest
+): Promise<void> {
+  const res = await fetch(`${API_URL}/v1/onboarding`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || "Failed to save onboarding");
+  }
+}
+
+export async function getOnboardingStatus(
+  token: string
+): Promise<{ completed: boolean }> {
+  const res = await fetch(`${API_URL}/v1/onboarding`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  if (!res.ok) return { completed: false };
+  return res.json();
+}
+
 export async function getServices(token: string): Promise<Service[]> {
   const res = await fetch(`${API_URL}/v1/services`, {
     headers: { Authorization: `Bearer ${token}` },

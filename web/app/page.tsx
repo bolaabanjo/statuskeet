@@ -2,31 +2,34 @@ import Link from "next/link";
 import Image from "next/image";
 import { BlockBorder } from "@/components/ui/block-border";
 import { GitHubStars } from "@/components/ui/github-stars";
+import { MobileNav } from "@/components/ui/mobile-nav";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
       {/* Nav */}
       <nav className="fixed top-0 w-full bg-background/80 backdrop-blur-md z-50 border-b border-white/[0.06]">
-        <div className="max-w-6xl mx-auto px-6 h-11 flex items-center justify-between">
-          <div className="flex items-center gap-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-10 h-11 flex items-center justify-between">
+          <div className="flex items-center gap-6 sm:gap-10">
             <Link href="/" className="flex items-center gap-2">
-              <Image src="/S.png" alt="StatusKeet" width={16} height={16} />
+              <Image src="/s.png" alt="StatusKeet" width={24} height={24} />
               <span className="text-xs font-bold uppercase tracking-widest text-white">
                 StatusKeet
               </span>
             </Link>
-            <Link href="/docs" className="text-[11px] text-muted-foreground hover:text-white transition uppercase tracking-wider">
-              Docs
-            </Link>
-            <Link href="/pricing" className="text-[11px] text-muted-foreground hover:text-white transition uppercase tracking-wider">
-              Pricing
-            </Link>
-            <Link href="/changelog" className="text-[11px] text-muted-foreground hover:text-white transition uppercase tracking-wider">
-              Changelog
-            </Link>
+            <div className="hidden md:flex items-center gap-6 sm:gap-10">
+              <Link href="/docs" className="text-[11px] text-muted-foreground hover:text-white transition uppercase tracking-wider">
+                Docs
+              </Link>
+              <Link href="/pricing" className="text-[11px] text-muted-foreground hover:text-white transition uppercase tracking-wider">
+                Pricing
+              </Link>
+              <Link href="/changelog" className="text-[11px] text-muted-foreground hover:text-white transition uppercase tracking-wider">
+                Changelog
+              </Link>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3">
             <GitHubStars
               owner="bolaabanjo"
               repo="statuskeet"
@@ -47,13 +50,14 @@ export default function Home() {
               Sign Up
             </Link>
           </div>
+          <MobileNav />
         </div>
       </nav>
 
       {/* Main container with outer border rails */}
-      <div className="max-w-6xl mx-auto border-x border-white/[0.06]">
+      <div className="max-w-6xl mx-auto md:border-x border-white/[0.06]">
         {/* Hero */}
-        <section className="pt-24 pb-14 px-8">
+        <section className="pt-20 sm:pt-24 pb-10 sm:pb-14 px-4 sm:px-8">
           <div className="max-w-2xl">
             <div className="flex items-center gap-1.5 mb-4">
               <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
@@ -105,7 +109,7 @@ export default function Home() {
         </BlockBorder>
 
         {/* Uptime Bars — edge-to-edge */}
-        <section className="py-14">
+        <section className="py-8 sm:py-14">
           <BlockBorder crosses={false} className="border-x-0">
             <div className="px-5 py-3 flex items-center justify-between border-b border-white/[0.06]">
               <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
@@ -128,7 +132,7 @@ export default function Home() {
         {/* Code Snippet — 2-column, edge-to-edge */}
         <BlockBorder cols={2} crosses={false} className="border-x-0">
             <div className="grid md:grid-cols-2">
-              <div className="p-6 flex flex-col justify-center">
+              <div className="p-4 sm:p-6 flex flex-col justify-center">
                 <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground block mb-2">
                   Integration
                 </span>
@@ -204,8 +208,8 @@ export default function Home() {
         </BlockBorder>
 
         {/* How it works — 3-column, edge-to-edge */}
-        <section className="py-14">
-          <div className="px-6 mb-8">
+        <section className="py-8 sm:py-14">
+          <div className="px-4 sm:px-6 mb-6 sm:mb-8">
             <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground block mb-2">
               How it works
             </span>
@@ -223,8 +227,8 @@ export default function Home() {
         </section>
 
         {/* Features — 3-column, 2-row, edge-to-edge */}
-        <section className="py-14 border-t border-white/[0.06]">
-          <div className="px-6 mb-8">
+        <section className="py-8 sm:py-14 border-t border-white/[0.06]">
+          <div className="px-4 sm:px-6 mb-6 sm:mb-8">
             <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground block mb-2">
               Features
             </span>
@@ -233,7 +237,7 @@ export default function Home() {
             </h2>
           </div>
           <BlockBorder cols={3} rows={2} crosses={false} className="border-x-0">
-            <div className="grid md:grid-cols-3 relative z-10">
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 relative z-10">
               <FeatureCell title="Code-first" description="Services defined in your codebase. Version-controlled. No UI to drift out of sync." />
               <FeatureCell title="Hybrid checks" description="External pings catch outages. Internal heartbeats catch degraded states your health check misses." />
               <FeatureCell title="Zero-touch incidents" description="Detected, escalated, and resolved automatically. Override manually if you need to." />
@@ -245,8 +249,8 @@ export default function Home() {
         </section>
 
         {/* Comparison — 2-column, edge-to-edge */}
-        <section className="py-14 border-t border-white/[0.06]">
-          <div className="px-6 mb-8">
+        <section className="py-8 sm:py-14 border-t border-white/[0.06]">
+          <div className="px-4 sm:px-6 mb-6 sm:mb-8">
             <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground block mb-2">
               Comparison
             </span>
@@ -268,7 +272,7 @@ export default function Home() {
                   <CompRow negative text="$79-399/month" />
                 </ul>
               </div>
-              <div className="p-5">
+              <div className="p-5 border-t md:border-t-0 border-white/[0.06]">
                 <span className="text-[10px] uppercase tracking-[0.2em] text-green-600 block mb-4">
                   StatusKeet
                 </span>
@@ -285,8 +289,8 @@ export default function Home() {
         </section>
 
         {/* CTA */}
-        <section className="py-16 border-t border-white/[0.06]">
-          <div className="text-center px-6">
+        <section className="py-10 sm:py-16 border-t border-white/[0.06]">
+          <div className="text-center px-4 sm:px-6">
             <h2 className="text-xl font-bold text-white font-heading mb-2">
               Ready to ship?
             </h2>
@@ -311,8 +315,8 @@ export default function Home() {
         </section>
 
         {/* Footer */}
-        <footer className="px-6 py-5 border-t border-white/[0.06]">
-          <div className="flex items-center justify-between">
+        <footer className="px-4 sm:px-6 py-5 border-t border-white/[0.06]">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
             <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50">
               StatusKeet v0.1
             </span>
@@ -432,27 +436,27 @@ function UptimeRow({
   };
 
   return (
-    <div className="px-5 py-3">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2.5">
-          <span className={`text-[10px] font-bold ${methodColors[method] || methodColors.GET}`}>
+    <div className="px-3 sm:px-5 py-3">
+      <div className="flex items-center justify-between mb-2 gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className={`text-[10px] font-bold shrink-0 ${methodColors[method] || methodColors.GET}`}>
             {method}
           </span>
-          <span className="text-xs text-foreground">{endpoint}</span>
+          <span className="text-xs text-foreground truncate">{endpoint}</span>
         </div>
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-3 sm:gap-5 shrink-0">
           <div className="text-right">
             <span className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] block">Uptime</span>
             <span className="text-xs text-green-400 font-bold">{uptime}</span>
           </div>
-          <div className="text-right">
+          <div className="text-right hidden sm:block">
             <span className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] block">Avg</span>
             <span className="text-xs text-foreground font-bold">{responseTime}</span>
           </div>
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-[9px] text-muted-foreground shrink-0">90d</span>
+        <span className="text-[9px] text-muted-foreground shrink-0 hidden sm:block">90d</span>
         <div className="flex gap-[1px] flex-1">
           {bars.map((color, i) => (
             <div
@@ -492,10 +496,10 @@ function generateBars(uptimeRate: number): string[] {
 function CompRow({ text, negative }: { text: string; negative?: boolean }) {
   return (
     <li className="flex items-center gap-2">
-      <span className={`text-base ${negative ? "text-muted-foreground/50" : "text-green-500"}`}>
+      <span className={`text-sm sm:text-base ${negative ? "text-muted-foreground/50" : "text-green-500"}`}>
         {negative ? "\u2014" : "\u2022"}
       </span>
-      <span className={`text-base ${negative ? "text-muted-foreground" : "text-foreground"}`}>
+      <span className={`text-sm sm:text-base ${negative ? "text-muted-foreground" : "text-foreground"}`}>
         {text}
       </span>
     </li>
