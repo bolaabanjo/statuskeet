@@ -62,6 +62,47 @@ func (r *CheckResultRepo) GetRecent(ctx context.Context, serviceID uuid.UUID, li
 	return results, rows.Err()
 }
 
+// DailyUptime holds the uptime ratio for a single day.
+type DailyUptime struct {
+	Date       string  `json:"date"`
+	UptimeRate float64 `json:"uptime_rate"`
+	Total      int     `json:"total"`
+}
+
+// GetDailyUptime returns daily uptime percentages for a service over the last N days.
+func (r *CheckResultRepo) GetDailyUptime(ctx context.Context, serviceID uuid.UUID, days int) ([]DailyUptime, error) {
+	rows, err := r.db.Query(ctx,
+		`SELECT
+			checked_at::date AS day,
+			COUNT(*) AS total,
+			COUNT(*) FILTER (WHERE status = 'up') AS up_count
+		 FROM check_results
+		 WHERE service_id = $1 AND checked_at >= NOW() - make_interval(days => $2)
+		 GROUP BY day
+		 ORDER BY day ASC`,
+		serviceID, days,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []DailyUptime
+	for rows.Next() {
+		var d DailyUptime
+		var total, upCount int
+		if err := rows.Scan(&d.Date, &total, &upCount); err != nil {
+			return nil, err
+		}
+		d.Total = total
+		if total > 0 {
+			d.UptimeRate = float64(upCount) / float64(total)
+		}
+		results = append(results, d)
+	}
+	return results, rows.Err()
+}
+
 func metadataBytes(m *json.RawMessage) []byte {
 	if m == nil {
 		return nil

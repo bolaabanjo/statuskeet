@@ -16,6 +16,7 @@ import (
 func NewRouter(cfg *config.Config, pool *pgxpool.Pool) http.Handler {
 	r := chi.NewRouter()
 
+	r.Use(middleware.CORS)
 	r.Use(chimw.RequestID)
 	r.Use(chimw.RealIP)
 	r.Use(chimw.Logger)
@@ -44,6 +45,7 @@ func NewRouter(cfg *config.Config, pool *pgxpool.Pool) http.Handler {
 	authHandler := NewAuthHandler(authService, apiKeyService, orgRepo)
 	serviceHandler := NewServiceHandler(serviceRepo, orgRepo)
 	heartbeatHandler := NewHeartbeatHandler(checkResultRepo, serviceRepo, statusEvaluator, incidentManager)
+	publicHandler := NewPublicHandler(orgRepo, serviceRepo, incidentRepo, checkResultRepo)
 
 	r.Route("/v1", func(r chi.Router) {
 		// Public auth routes
@@ -65,7 +67,8 @@ func NewRouter(cfg *config.Config, pool *pgxpool.Pool) http.Handler {
 		})
 
 		// Public status page routes (no auth)
-		// GET /v1/public/{orgSlug}/status — coming later
+		r.Get("/public/{orgSlug}/status", publicHandler.Status)
+		r.Get("/public/{orgSlug}/incidents", publicHandler.Incidents)
 	})
 
 	return r
