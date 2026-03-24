@@ -169,6 +169,64 @@ export async function getOnboardingStatus(
   return res.json();
 }
 
+export interface APIKey {
+  id: string;
+  organization_id: string;
+  key_prefix: string;
+  name: string;
+  last_used_at: string | null;
+  created_at: string;
+  revoked_at: string | null;
+}
+
+export interface CreateAPIKeyResponse {
+  key: string;
+  api_key: APIKey;
+}
+
+export async function createAPIKey(
+  token: string,
+  name: string
+): Promise<CreateAPIKeyResponse> {
+  const res = await fetch(`${API_URL}/v1/org/api-keys`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ name }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || "Failed to create API key");
+  }
+  return res.json();
+}
+
+export async function listAPIKeys(token: string): Promise<APIKey[]> {
+  const res = await fetch(`${API_URL}/v1/org/api-keys`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.api_keys || [];
+}
+
+export async function revokeAPIKey(
+  token: string,
+  keyId: string
+): Promise<void> {
+  const res = await fetch(`${API_URL}/v1/org/api-keys/${keyId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || "Failed to revoke API key");
+  }
+}
+
 export async function getServices(token: string): Promise<Service[]> {
   const res = await fetch(`${API_URL}/v1/services`, {
     headers: { Authorization: `Bearer ${token}` },

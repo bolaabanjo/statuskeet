@@ -5,18 +5,22 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
+
 	"github.com/bolaabanjo/statuskeet/internal/middleware"
 	"github.com/bolaabanjo/statuskeet/internal/models"
 	"github.com/bolaabanjo/statuskeet/internal/repository"
 )
 
 type ServiceHandler struct {
-	serviceRepo *repository.ServiceRepo
-	orgRepo     *repository.OrgRepo
+	serviceRepo     *repository.ServiceRepo
+	checkResultRepo *repository.CheckResultRepo
+	orgRepo         *repository.OrgRepo
 }
 
-func NewServiceHandler(serviceRepo *repository.ServiceRepo, orgRepo *repository.OrgRepo) *ServiceHandler {
-	return &ServiceHandler{serviceRepo: serviceRepo, orgRepo: orgRepo}
+func NewServiceHandler(serviceRepo *repository.ServiceRepo, checkResultRepo *repository.CheckResultRepo, orgRepo *repository.OrgRepo) *ServiceHandler {
+	return &ServiceHandler{serviceRepo: serviceRepo, checkResultRepo: checkResultRepo, orgRepo: orgRepo}
 }
 
 func (h *ServiceHandler) Register(w http.ResponseWriter, r *http.Request) {
@@ -97,6 +101,49 @@ func (h *ServiceHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, map[string]any{"services": services})
+}
+
+func (h *ServiceHandler) Detail(w http.ResponseWriter, r *http.Request) {
+	userID, err := middleware.GetUserID(r.Context())
+	if err != nil {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		return
+	}
+
+	serviceID, err := uuid.Parse(chi.URLParam(r, "serviceID"))
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid service ID"})
+		return
+	}
+
+	// Verify user owns this service
+	orgs, err := h.orgRepo.GetUserOrgs(r.Context(), userID)
+	if err != nil || len(orgs) == 0 {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "service not found"})
+		return
+	}
+
+	service, err := h.serviceRepo.GetByID(r.Context(), serviceID)
+	if err != nil || service.OrgID != orgs[0].ID {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "service not found"})
+		return
+	}
+
+	uptime, err := h.checkResultRepo.GetDailyUptime(r.Context(), serviceID, 90)
+	if err != nil {
+		uptime = nil
+	}
+
+	recent, err := h.checkResultRepo.GetRecent(r.Context(), serviceID, 20)
+	if err != nil {
+		recent = nil
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"service":       service,
+		"uptime":        uptime,
+		"recent_checks": recent,
+	})
 }
 
 func validateServiceRequest(svc models.RegisterServiceRequest) error {

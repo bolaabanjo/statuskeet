@@ -44,7 +44,7 @@ func NewRouter(cfg *config.Config, pool *pgxpool.Pool) http.Handler {
 
 	// Handlers
 	authHandler := NewAuthHandler(authService, apiKeyService, orgRepo)
-	serviceHandler := NewServiceHandler(serviceRepo, orgRepo)
+	serviceHandler := NewServiceHandler(serviceRepo, checkResultRepo, orgRepo)
 	heartbeatHandler := NewHeartbeatHandler(checkResultRepo, serviceRepo, statusEvaluator, incidentManager)
 	publicHandler := NewPublicHandler(orgRepo, serviceRepo, incidentRepo, checkResultRepo)
 	onboardingHandler := NewOnboardingHandler(onboardingRepo, orgRepo)
@@ -65,7 +65,10 @@ func NewRouter(cfg *config.Config, pool *pgxpool.Pool) http.Handler {
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.JWTAuth(authService))
 			r.Post("/org/api-keys", authHandler.CreateAPIKey)
+			r.Get("/org/api-keys", authHandler.ListAPIKeys)
+			r.Delete("/org/api-keys/{keyID}", authHandler.RevokeAPIKey)
 			r.Get("/services", serviceHandler.List)
+			r.Get("/services/{serviceID}", serviceHandler.Detail)
 			r.Post("/onboarding", onboardingHandler.Complete)
 			r.Get("/onboarding", onboardingHandler.Status)
 		})

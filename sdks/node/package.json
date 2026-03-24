@@ -1,0 +1,33 @@
+{
+  "name": "statuskeet",
+  "version": "0.1.0",
+  "description": "Node.js SDK for StatusKeet — SDK-first status monitoring",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "status",
+    "monitoring",
+    "uptime",
+    "heartbeat",
+    "status-page"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bolaabanjo/statuskeet"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "typescript": "^5.5.0"
+  }
+}

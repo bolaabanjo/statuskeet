@@ -52,6 +52,20 @@ func (r *APIKeyRepo) UpdateLastUsed(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+func (r *APIKeyRepo) Revoke(ctx context.Context, id, orgID uuid.UUID) error {
+	result, err := r.db.Exec(ctx,
+		`UPDATE api_keys SET revoked_at = now() WHERE id = $1 AND organization_id = $2 AND revoked_at IS NULL`,
+		id, orgID,
+	)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
 func (r *APIKeyRepo) ListByOrg(ctx context.Context, orgID uuid.UUID) ([]models.APIKey, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, organization_id, key_prefix, name, last_used_at, created_at, revoked_at

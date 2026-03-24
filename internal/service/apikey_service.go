@@ -62,3 +62,7 @@ func (s *APIKeyService) Validate(ctx context.Context, rawKey string) (*models.AP
 func (s *APIKeyService) ListByOrg(ctx context.Context, orgID uuid.UUID) ([]models.APIKey, error) {
 	return s.repo.ListByOrg(ctx, orgID)
 }
+
+func (s *APIKeyService) Revoke(ctx context.Context, id, orgID uuid.UUID) error {
+	return s.repo.Revoke(ctx, id, orgID)
+}

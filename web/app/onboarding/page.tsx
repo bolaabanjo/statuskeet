@@ -278,7 +278,7 @@ export default function OnboardingPage() {
               What are you looking to monitor?
             </p>
 
-            <div className="grid grid-cols-2 gap-3 text-left">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
               {useCases.map((uc) => {
                 const active = selected.has(uc.id);
                 return (
