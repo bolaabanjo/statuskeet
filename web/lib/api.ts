@@ -236,3 +236,33 @@ export async function getServices(token: string): Promise<Service[]> {
   const data = await res.json();
   return data.services;
 }
+
+export interface CheckResult {
+  id: string;
+  service_id: string;
+  source: string;
+  status: string;
+  response_time: number | null;
+  status_code: number | null;
+  error_message: string | null;
+  region: string | null;
+  checked_at: string;
+}
+
+export interface ServiceDetailResponse {
+  service: Service;
+  uptime: DailyUptime[] | null;
+  recent_checks: CheckResult[] | null;
+}
+
+export async function getServiceDetail(
+  token: string,
+  serviceId: string
+): Promise<ServiceDetailResponse | null> {
+  const res = await fetch(`${API_URL}/v1/services/${serviceId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  if (!res.ok) return null;
+  return res.json();
+}

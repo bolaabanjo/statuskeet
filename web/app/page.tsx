@@ -12,7 +12,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-10 h-11 flex items-center justify-between">
           <div className="flex items-center gap-6 sm:gap-10">
             <Link href="/" className="flex items-center gap-2">
-              <Image src="/s.png" alt="StatusKeet" width={24} height={24} />
+              <Image src="/logo.png" alt="StatusKeet" width={24} height={24} />
               <span className="text-xs font-bold uppercase tracking-widest text-white">
                 StatusKeet
               </span>

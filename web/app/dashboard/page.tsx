@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { getPublicStatus } from "@/lib/api";
 import { BlockBorder } from "@/components/ui/block-border";
 import type { ServiceWithUptime, PublicIncidentResponse, PublicStatusResponse } from "@/lib/api";
@@ -153,7 +154,10 @@ function ServiceRow({ service, isLast }: { service: ServiceWithUptime; isLast: b
   const cfg = statusConfig[service.current_status] || statusConfig.unknown;
 
   return (
-    <div className={`grid grid-cols-[1fr_100px] sm:grid-cols-[1fr_100px_80px_100px] gap-4 items-center px-4 py-3 ${!isLast ? "border-b border-white/[0.06]" : ""}`}>
+    <Link
+      href={`/dashboard/services/${service.id}`}
+      className={`grid grid-cols-[1fr_100px] sm:grid-cols-[1fr_100px_80px_100px] gap-4 items-center px-4 py-3 hover:bg-white/[0.02] transition ${!isLast ? "border-b border-white/[0.06]" : ""}`}
+    >
       <div>
         <span className="text-xs font-medium text-foreground">{service.name}</span>
         {service.url && (
@@ -166,7 +170,7 @@ function ServiceRow({ service, isLast }: { service: ServiceWithUptime; isLast: b
         <span className={`text-[11px] ${cfg.color}`}>{cfg.label}</span>
         <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
       </div>
-    </div>
+    </Link>
   );
 }
 
