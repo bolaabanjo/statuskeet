@@ -33,8 +33,8 @@ func (h *OnboardingHandler) Complete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.FirstName == "" || req.LastName == "" || req.CompanySize == "" || req.Role == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "all fields are required"})
+	if req.FirstName == "" || req.CompanySize == "" || req.Role == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "first_name, company_size, and role are required"})
 		return
 	}
 

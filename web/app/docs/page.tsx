@@ -6,11 +6,11 @@ export default function DocsPage() {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
       {/* Nav */}
-      <nav className="fixed top-0 w-full bg-background/80 backdrop-blur-md z-50 border-b border-white/[0.06]">
+      <nav className="fixed top-0 w-full bg-background/80 backdrop-blur-md z-50 border-b border-border">
         <div className="max-w-4xl mx-auto px-4 sm:px-8 h-11 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2">
-              <Image src="/s.png" alt="StatusKeet" width={24} height={24} />
+              <Image src="/logo.png" alt="StatusKeet" width={24} height={24} />
               <span className="text-xs font-bold uppercase tracking-widest text-white">
                 StatusKeet
               </span>
@@ -35,7 +35,7 @@ export default function DocsPage() {
           <span className="text-[10px] uppercase tracking-[0.2em] text-green-400 block mb-2">
             Documentation
           </span>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white font-heading mb-3">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white font-heading italic mb-3">
             Get started with StatusKeet
           </h1>
           <p className="text-sm text-muted-foreground max-w-lg leading-relaxed">
@@ -149,7 +149,7 @@ sk.report({
           {/* API reference */}
           <section>
             <StepHeader number="06" title="SDK reference" />
-            <BlockBorder cols={2} crosses={false} className="rounded-lg overflow-hidden">
+            <BlockBorder cols={2} crosses={false} className="rounded-none overflow-hidden">
               <div className="grid md:grid-cols-2">
                 <RefItem
                   method="new StatusKeet(options)"
@@ -182,8 +182,8 @@ sk.report({
           {/* Options table */}
           <section>
             <StepHeader number="07" title="Configuration options" />
-            <BlockBorder crosses className="rounded-lg overflow-hidden">
-              <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[140px_100px_1fr] gap-4 px-4 py-2 border-b border-white/[0.06]">
+            <BlockBorder crosses className="rounded-none overflow-hidden">
+              <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[140px_100px_1fr] gap-4 px-4 py-2 border-b border-border">
                 <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Option</span>
                 <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hidden sm:block">Default</span>
                 <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Description</span>
@@ -199,7 +199,7 @@ sk.report({
         </div>
 
         {/* Footer */}
-        <div className="mt-16 pt-8 border-t border-white/[0.06] text-center">
+        <div className="mt-16 pt-8 border-t border-border text-center">
           <p className="text-xs text-muted-foreground">
             Go and Python SDKs coming in Phase 2.{" "}
             <Link href="https://github.com/bolaabanjo/statuskeet" className="text-foreground underline underline-offset-2 hover:text-white transition">
@@ -223,8 +223,8 @@ function StepHeader({ number, title }: { number: string; title: string }) {
 
 function CodeBlock({ code, language, filename }: { code: string; language: string; filename?: string }) {
   return (
-    <div className="rounded-lg border border-white/[0.06] overflow-hidden">
-      <div className="flex items-center gap-1.5 px-4 py-2 border-b border-white/[0.06]">
+    <div className="rounded-none border border-border overflow-hidden">
+      <div className="flex items-center gap-1.5 px-4 py-2 border-b border-border">
         <div className="w-2 h-2 rounded-full bg-[#ff5f57]" />
         <div className="w-2 h-2 rounded-full bg-[#febc2e]" />
         <div className="w-2 h-2 rounded-full bg-[#28c840]" />
@@ -261,7 +261,7 @@ function OptionRow({
   isLast?: boolean;
 }) {
   return (
-    <div className={`grid grid-cols-[120px_1fr] sm:grid-cols-[140px_100px_1fr] gap-4 items-center px-4 py-2.5 ${!isLast ? "border-b border-white/[0.06]" : ""}`}>
+    <div className={`grid grid-cols-[120px_1fr] sm:grid-cols-[140px_100px_1fr] gap-4 items-center px-4 py-2.5 ${!isLast ? "border-b border-border" : ""}`}>
       <div className="flex items-center gap-1.5">
         <code className="text-[11px] text-foreground font-mono">{name}</code>
         {required && <span className="text-[9px] text-red-400">*</span>}

@@ -69,7 +69,7 @@ export default function SettingsPage() {
 
   return (
     <>
-      <h1 className="text-lg font-semibold text-foreground font-heading mb-1">
+      <h1 className="text-lg font-semibold text-foreground font-heading italic mb-1">
         API Keys
       </h1>
       <p className="text-sm text-muted-foreground mb-6">
@@ -119,7 +119,7 @@ export default function SettingsPage() {
       {/* Create modal */}
       {showCreate && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
-          <div className="w-full max-w-sm bg-muted border border-white/[0.06] rounded-lg p-6">
+          <div className="w-full max-w-sm bg-muted border border-border rounded-lg p-6">
             <h2 className="text-sm font-semibold text-foreground mb-4">
               Create API Key
             </h2>
@@ -140,7 +140,7 @@ export default function SettingsPage() {
                   setShowCreate(false);
                   setNewKeyName("");
                 }}
-                className="text-[11px] font-medium h-8 px-3 rounded border border-white/[0.06] text-foreground hover:text-white transition uppercase tracking-wider"
+                className="text-[11px] font-medium h-8 px-3 rounded border border-border text-foreground hover:text-white transition uppercase tracking-wider"
               >
                 Cancel
               </button>
@@ -163,14 +163,14 @@ export default function SettingsPage() {
       ) : (
         <>
           {/* Active keys table */}
-          <div className="rounded-lg border border-white/[0.06] overflow-hidden">
+          <div className="rounded-lg border border-border overflow-hidden">
             {activeKeys.length > 0 ? (
               activeKeys.map((key, i) => (
                 <div
                   key={key.id}
                   className={`flex items-center justify-between px-4 py-3 ${
                     i < activeKeys.length - 1
-                      ? "border-b border-white/[0.06]"
+                      ? "border-b border-border"
                       : ""
                   }`}
                 >
@@ -239,13 +239,13 @@ export default function SettingsPage() {
               <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground block mb-3">
                 Revoked Keys
               </span>
-              <div className="rounded-lg border border-white/[0.06] overflow-hidden opacity-50">
+              <div className="rounded-lg border border-border overflow-hidden opacity-50">
                 {revokedKeys.map((key, i) => (
                   <div
                     key={key.id}
                     className={`flex items-center justify-between px-4 py-3 ${
                       i < revokedKeys.length - 1
-                        ? "border-b border-white/[0.06]"
+                        ? "border-b border-border"
                         : ""
                     }`}
                   >
@@ -270,7 +270,7 @@ export default function SettingsPage() {
           )}
 
           {/* SDK quickstart */}
-          <div className="mt-8 rounded-lg border border-white/[0.06] p-5">
+          <div className="mt-8 rounded-lg border border-border p-5">
             <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground block mb-3">
               Quick Start
             </span>

@@ -30,7 +30,7 @@ export default async function StatusPage({
         </div>
 
         {/* Services */}
-        <div className="rounded-lg bg-muted overflow-hidden">
+        <div className="rounded-none bg-muted overflow-hidden">
           {data.services.map((service, i) => (
             <ServiceRow
               key={service.id}
@@ -85,6 +85,7 @@ function StatusBanner({
     degraded: { text: "text-yellow-400", dot: "bg-yellow-500" },
     partial_outage: { text: "text-orange-400", dot: "bg-orange-500" },
     major_outage: { text: "text-red-400", dot: "bg-red-500" },
+    unknown: { text: "text-muted-foreground", dot: "bg-muted-foreground" },
   };
 
   const cfg = config[status] || config.operational;
@@ -168,7 +169,7 @@ function UptimeBars({ uptime }: { uptime: DailyUptime[] }) {
         <div
           key={bar.date}
           className="flex-1 h-7 rounded-[2px]"
-          style={{ backgroundColor: barColor(bar.rate) }}
+          style={{ backgroundColor: bar.hasData ? barColor(bar.rate) : "rgba(255,255,255,0.08)" }}
           title={`${bar.date}: ${bar.hasData ? `${(bar.rate * 100).toFixed(1)}%` : "No data"}`}
         />
       ))}
@@ -193,7 +194,7 @@ function IncidentCard({ data }: { data: PublicIncidentResponse }) {
   };
 
   return (
-    <div className="rounded-lg bg-muted p-4">
+    <div className="rounded-none bg-muted p-4">
       <div className="flex items-start justify-between">
         <h3 className="text-xs font-bold text-white">{incident.title}</h3>
         <span

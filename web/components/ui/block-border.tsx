@@ -63,7 +63,7 @@
  * </BlockBorder>
  *
  * // Edge-to-edge inside a railed parent (no side borders, no crosses)
- * <div className="max-w-5xl mx-auto border-x border-white/[0.06]">
+ * <div className="max-w-5xl mx-auto border-x border-border">
  *   <BlockBorder cols={4} crosses={false} className="border-x-0">
  *     <div className="grid grid-cols-4">...</div>
  *   </BlockBorder>
@@ -152,7 +152,7 @@ function CrossMark({ position, size, opacity }: CrossMarkProps) {
         style={{
           width: size,
           height: 1,
-          backgroundColor: `rgba(255, 255, 255, ${opacity})`,
+          backgroundColor: `color-mix(in oklch, var(--foreground) ${opacity * 100}%, transparent)`,
         }}
       />
       {/* Vertical arm */}
@@ -161,7 +161,7 @@ function CrossMark({ position, size, opacity }: CrossMarkProps) {
         style={{
           width: 1,
           height: size,
-          backgroundColor: `rgba(255, 255, 255, ${opacity})`,
+          backgroundColor: `color-mix(in oklch, var(--foreground) ${opacity * 100}%, transparent)`,
         }}
       />
     </div>
@@ -198,7 +198,7 @@ export function BlockBorder({
   cols = 1,
   rows = 1,
   crosses = true,
-  lineColor = "rgba(255, 255, 255, 0.06)",
+  lineColor = "var(--border)",
   crossSize = 18,
   crossOpacity = 0.3,
   className = "",

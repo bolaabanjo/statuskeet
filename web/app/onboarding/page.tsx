@@ -3,69 +3,17 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { completeOnboarding } from "@/lib/api";
-
-const companySizes = ["1-5", "6-20", "21-100", "101-500", "500+"];
-
-const roles = [
-  "Software engineer",
-  "DevOps / SRE",
-  "Engineering manager",
-  "CTO / VP Engineering",
-  "Product manager",
-  "Founder",
-  "Other",
-];
-
-const useCases = [
-  {
-    id: "uptime",
-    title: "Uptime monitoring",
-    description: "Monitor your endpoints and get alerted when they go down",
-  },
-  {
-    id: "status-page",
-    title: "Public status page",
-    description: "Give your users a dedicated page to check service health",
-  },
-  {
-    id: "incidents",
-    title: "Incident management",
-    description: "Automatically detect, track, and resolve incidents",
-  },
-  {
-    id: "heartbeats",
-    title: "Heartbeat monitoring",
-    description: "Track cron jobs, background workers, and scheduled tasks",
-  },
-  {
-    id: "api-monitoring",
-    title: "API monitoring",
-    description: "Monitor response times and error rates for your APIs",
-  },
-  {
-    id: "internal",
-    title: "Internal services",
-    description: "Monitor databases, queues, and internal infrastructure",
-  },
-];
+import { registerServices, completeOnboarding } from "@/lib/api";
+import { BlockBorder } from "@/components/ui/block-border";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import Link from "next/link";
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const [step, setStep] = useState(1);
-
-  // Step 1
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [company, setCompany] = useState("");
-  const [companySize, setCompanySize] = useState("");
-  const [role, setRole] = useState("");
-
-  // Step 2
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-
-  // Step 3 (setup screen)
-  const [progress, setProgress] = useState(0);
+  const [url, setUrl] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -74,255 +22,116 @@ export default function OnboardingPage() {
       router.push("/login");
       return;
     }
-
-    const org = localStorage.getItem("org");
-    if (org) {
-      setCompany(JSON.parse(org).name || "");
-    }
   }, [router]);
 
-  function toggleUseCase(id: string) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
+  async function handleStartMonitoring(e: React.FormEvent) {
+    e.preventDefault();
+    if (!url) return;
 
-  async function handleContinue() {
-    if (step === 1) {
-      setStep(2);
-      return;
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const token = localStorage.getItem("token") || "";
+      const storedUser = localStorage.getItem("user");
+      const fullName = storedUser ? JSON.parse(storedUser).name || "User" : "User";
+      const [firstName = "User", ...restName] = String(fullName).trim().split(/\s+/);
+      
+      // 1. Extract a name from the URL
+      let name = url.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+      if (name.length > 20) name = name.substring(0, 20);
+
+      // 2. Register the service
+      await registerServices(token, [
+        {
+          name,
+          url,
+          type: "http",
+          criticality: "standard",
+          check_interval: 60,
+        },
+      ]);
+
+      // 3. Mark onboarding as complete (backend record)
+      await completeOnboarding(token, {
+        first_name: firstName,
+        last_name: restName.join(" "),
+        company_size: "1-5",
+        role: "Founder",
+        use_cases: ["uptime"],
+      });
+
+      localStorage.setItem("onboarded", "true");
+      router.push("/dashboard");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to start monitoring");
+      setIsLoading(false);
     }
-
-    if (step === 2) {
-      setStep(3);
-      setError("");
-
-      // Animate progress bar
-      let p = 0;
-      const interval = setInterval(() => {
-        p += Math.random() * 15;
-        if (p > 90) p = 90;
-        setProgress(p);
-      }, 200);
-
-      try {
-        const token = localStorage.getItem("token") || "";
-        await completeOnboarding(token, {
-          first_name: firstName,
-          last_name: lastName,
-          company_size: companySize,
-          role,
-          use_cases: Array.from(selected),
-        });
-
-        clearInterval(interval);
-        setProgress(100);
-
-        setTimeout(() => {
-          localStorage.setItem("onboarded", "true");
-          router.push("/dashboard");
-        }, 600);
-      } catch (err) {
-        clearInterval(interval);
-        setError(err instanceof Error ? err.message : "Something went wrong");
-        setStep(2);
-      }
-    }
-  }
-
-  const step1Valid = firstName.trim() && lastName.trim() && companySize && role;
-  const step2Valid = selected.size > 0;
-
-  // Step 3: Setup screen
-  if (step === 3) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background px-4 font-sans">
-        <div className="w-full max-w-sm text-center">
-          <Image src="/s.png" alt="StatusKeet" width={28} height={28} className="mx-auto mb-6" />
-          <h1 className="text-lg font-semibold text-white mb-2">
-            Setting up your account
-          </h1>
-          <p className="text-sm text-muted-foreground mb-8">
-            StatusKeet monitors your services, detects incidents,
-            and keeps your status page honest.
-          </p>
-          <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full bg-green-500 rounded-full transition-all duration-300 ease-out"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-      </div>
-    );
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background px-4 font-sans">
-      <div className="w-full max-w-sm text-center">
-        <Image src="/s.png" alt="StatusKeet" width={28} height={28} className="mx-auto mb-6" />
+    <div className="flex items-center justify-center min-h-screen bg-background px-4 font-sans text-foreground">
+      <div className="w-full max-w-sm">
+        <div className="flex justify-center mb-8">
+          <Link href="/">
+             <Image src="/logo.png" alt="StatusKeet" width={32} height={32} />
+          </Link>
+        </div>
 
-        {step === 1 ? (
-          <>
-            <p className="text-sm text-green-400 mb-1">Welcome aboard</p>
-            <h1 className="text-lg font-semibold text-white mb-8">
-              Tell us a bit about yourself
-            </h1>
+        <BlockBorder crosses className="rounded-none p-8 bg-zinc-900/50 backdrop-blur-sm border-border">
+          <h1 className="text-xl font-bold text-white mb-2 text-center font-heading italic">
+            Deploy your first monitor
+          </h1>
+          <p className="text-xs text-muted-foreground mb-8 text-center leading-relaxed">
+            Enter the URL of the application or endpoint you want to monitor.
+            We&apos;ll start pinging it every 60 seconds.
+          </p>
 
-            <div className="text-left space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm text-foreground mb-1.5">
-                    First name
-                  </label>
-                  <input
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-muted rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-muted-foreground/50 transition"
-                    placeholder="Jane"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-foreground mb-1.5">
-                    Last name
-                  </label>
-                  <input
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-muted rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-muted-foreground/50 transition"
-                    placeholder="Doe"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm text-foreground mb-1.5">
-                  Company
-                </label>
-                <input
-                  type="text"
-                  value={company}
-                  readOnly
-                  className="w-full px-3.5 py-2.5 bg-muted rounded-lg text-sm text-muted-foreground cursor-not-allowed"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm text-foreground mb-1.5">
-                  Company size
-                </label>
-                <select
-                  value={companySize}
-                  onChange={(e) => setCompanySize(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-muted rounded-lg text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-muted-foreground/50 transition appearance-none"
-                >
-                  <option value="" disabled>Select</option>
-                  {companySizes.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm text-foreground mb-1.5">
-                  What&apos;s your role?
-                </label>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-muted rounded-lg text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-muted-foreground/50 transition appearance-none"
-                >
-                  <option value="" disabled>Select</option>
-                  {roles.map((r) => (
-                    <option key={r} value={r}>{r}</option>
-                  ))}
-                </select>
-              </div>
+          <form onSubmit={handleStartMonitoring} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="url" className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground ml-1">
+                App URL
+              </Label>
+              <Input
+                id="url"
+                type="url"
+                required
+                placeholder="https://api.myapp.com/health"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                className="h-11 px-4 bg-zinc-950 border-border text-white"
+              />
             </div>
 
-            <button
-              onClick={handleContinue}
-              disabled={!step1Valid}
-              className="w-full mt-6 py-2.5 bg-green-500 text-sm text-black font-medium rounded-lg hover:bg-green-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Continue
-            </button>
-          </>
-        ) : (
-          <>
             {error && (
-              <div className="p-2.5 text-sm text-red-400 bg-red-500/10 rounded-lg mb-4">
+              <p className="text-[11px] text-destructive bg-destructive/5 border border-destructive/10 rounded-none p-2 text-center">
                 {error}
-              </div>
+              </p>
             )}
 
-            <button
-              onClick={() => setStep(1)}
-              className="text-sm text-muted-foreground hover:text-foreground transition mb-6 inline-flex items-center gap-1"
+            <Button
+              type="submit"
+              disabled={isLoading || !url}
+              className="w-full h-11 text-xs font-bold uppercase tracking-wider group"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-              </svg>
-              Back
-            </button>
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Initializing...
+                </span>
+              ) : (
+                "Start Monitoring"
+              )}
+            </Button>
+          </form>
+        </BlockBorder>
 
-            <h1 className="text-lg font-semibold text-white mb-1">
-              Great to have you, {firstName}!
-            </h1>
-            <p className="text-sm text-muted-foreground mb-8">
-              What are you looking to monitor?
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
-              {useCases.map((uc) => {
-                const active = selected.has(uc.id);
-                return (
-                  <button
-                    key={uc.id}
-                    onClick={() => toggleUseCase(uc.id)}
-                    className={`relative text-left rounded-lg border p-4 transition ${
-                      active
-                        ? "border-green-500/50 bg-green-500/5"
-                        : "border-white/[0.06] hover:border-white/[0.12]"
-                    }`}
-                  >
-                    <div className={`absolute top-3 right-3 w-5 h-5 rounded-full border flex items-center justify-center transition ${
-                      active
-                        ? "border-green-500 bg-green-500"
-                        : "border-white/[0.12]"
-                    }`}>
-                      {active && (
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </div>
-
-                    <h3 className="text-sm font-medium text-foreground mb-1 pr-6">
-                      {uc.title}
-                    </h3>
-                    <p className="text-[11px] text-muted-foreground leading-relaxed">
-                      {uc.description}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-
-            <button
-              onClick={handleContinue}
-              disabled={!step2Valid}
-              className="w-full mt-6 py-2.5 bg-green-500 text-sm text-black font-medium rounded-lg hover:bg-green-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Continue
-            </button>
-          </>
-        )}
+        <p className="mt-8 text-center text-[10px] text-muted-foreground/40 uppercase tracking-[0.1em]">
+          No credit card required &middot; 2-minute setup
+        </p>
       </div>
     </div>
   );

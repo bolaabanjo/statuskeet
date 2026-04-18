@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/bolaabanjo/statuskeet/internal/database"
 	"github.com/bolaabanjo/statuskeet/internal/models"
@@ -119,4 +120,73 @@ func (r *ServiceRepo) UpdateStatus(ctx context.Context, id uuid.UUID, status str
 		status, id,
 	)
 	return err
+}
+
+func (r *ServiceRepo) GetAllForMonitoring(ctx context.Context) ([]models.Service, error) {
+	rows, err := r.db.Query(ctx,
+		`SELECT id, org_id, name, description, service_type, url, check_interval, timeout,
+		   expected_status, criticality, current_status, display_order, visible, created_at, updated_at
+		 FROM services WHERE url IS NOT NULL AND url != ''`,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var services []models.Service
+	for rows.Next() {
+		var s models.Service
+		if err := rows.Scan(
+			&s.ID, &s.OrgID, &s.Name, &s.Description, &s.ServiceType,
+			&s.URL, &s.CheckInterval, &s.Timeout, &s.ExpectedStatus,
+			&s.Criticality, &s.CurrentStatus, &s.DisplayOrder, &s.Visible,
+			&s.CreatedAt, &s.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		services = append(services, s)
+	}
+	return services, rows.Err()
+}
+
+func (r *ServiceRepo) GetDueForMonitoring(ctx context.Context, now time.Time) ([]models.Service, error) {
+	rows, err := r.db.Query(ctx,
+		`SELECT s.id, s.org_id, s.name, s.description, s.service_type, s.url, s.check_interval, s.timeout,
+		   s.expected_status, s.criticality, s.current_status, s.display_order, s.visible, s.created_at, s.updated_at
+		 FROM services s
+		 LEFT JOIN LATERAL (
+		   SELECT checked_at
+		   FROM check_results cr
+		   WHERE cr.service_id = s.id AND cr.source = 'external'
+		   ORDER BY cr.checked_at DESC
+		   LIMIT 1
+		 ) latest ON TRUE
+		 WHERE s.url IS NOT NULL
+		   AND s.url != ''
+		   AND (
+		     latest.checked_at IS NULL OR
+		     latest.checked_at <= $1 - make_interval(secs => s.check_interval)
+		   )
+		 ORDER BY s.id`,
+		now,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var services []models.Service
+	for rows.Next() {
+		var s models.Service
+		if err := rows.Scan(
+			&s.ID, &s.OrgID, &s.Name, &s.Description, &s.ServiceType,
+			&s.URL, &s.CheckInterval, &s.Timeout, &s.ExpectedStatus,
+			&s.Criticality, &s.CurrentStatus, &s.DisplayOrder, &s.Visible,
+			&s.CreatedAt, &s.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		services = append(services, s)
+	}
+	return services, rows.Err()
 }

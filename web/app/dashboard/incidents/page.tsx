@@ -9,16 +9,31 @@ export default function IncidentsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const org = localStorage.getItem("org");
-    const slug = org ? JSON.parse(org).slug : "";
-    if (slug) {
-      getPublicStatus(slug).then((data) => {
+    let cancelled = false;
+
+    async function loadIncidents() {
+      const org = localStorage.getItem("org");
+      const slug = org ? JSON.parse(org).slug : "";
+
+      if (!slug) {
+        if (!cancelled) {
+          setLoading(false);
+        }
+        return;
+      }
+
+      const data = await getPublicStatus(slug);
+      if (!cancelled) {
         setIncidents(data?.active_incidents || []);
         setLoading(false);
-      });
-    } else {
-      setLoading(false);
+      }
     }
+
+    void loadIncidents();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (loading) {
@@ -28,7 +43,7 @@ export default function IncidentsPage() {
   return (
     <>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-lg font-semibold text-foreground font-heading">Incidents</h1>
+        <h1 className="text-lg font-semibold text-foreground font-heading italic">Incidents</h1>
         {incidents.length > 0 && (
           <span className="text-[10px] text-red-400">{incidents.length} active</span>
         )}
@@ -45,7 +60,7 @@ export default function IncidentsPage() {
             };
 
             return (
-              <div key={incident.id} className="rounded-lg border border-white/[0.06] p-4">
+              <div key={incident.id} className="rounded-none border border-border p-4">
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="text-xs font-bold text-white">{incident.title}</h3>
                   <span className={`text-[9px] font-bold uppercase tracking-wider ${severityColors[incident.severity] || severityColors.minor}`}>
@@ -57,7 +72,7 @@ export default function IncidentsPage() {
                   <span>Started {new Date(incident.started_at).toLocaleString()}</span>
                 </div>
                 {updates.length > 0 && (
-                  <div className="border-t border-white/[0.06] pt-3 space-y-2">
+                  <div className="border-t border-border pt-3 space-y-2">
                     {updates.map((update) => (
                       <div key={update.id} className="flex gap-2.5">
                         <div className="flex flex-col items-center">
@@ -79,7 +94,7 @@ export default function IncidentsPage() {
           })}
         </div>
       ) : (
-        <div className="rounded-lg border border-white/[0.06] p-10 text-center">
+        <div className="rounded-none border border-border p-10 text-center">
           <p className="text-sm text-muted-foreground">No active incidents</p>
           <p className="mt-2 text-xs text-muted-foreground">
             Incidents are created automatically when services go down.

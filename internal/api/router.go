@@ -37,7 +37,13 @@ func NewRouter(cfg *config.Config, pool *pgxpool.Pool) http.Handler {
 	onboardingRepo := repository.NewOnboardingRepo(pool)
 
 	// Services
-	authService := service.NewAuthService(pool, userRepo, orgRepo, cfg.JWTSecret)
+	authService := service.NewAuthService(pool, userRepo, orgRepo, service.AuthOptions{
+		JWTSecret:              cfg.JWTSecret,
+		Mode:                   cfg.AuthMode,
+		SupabaseURL:            cfg.SupabaseURL,
+		SupabaseClientKey:      cfg.SupabaseClientKey,
+		SupabaseServiceRoleKey: cfg.SupabaseServiceRoleKey,
+	})
 	apiKeyService := service.NewAPIKeyService(apiKeyRepo)
 	statusEvaluator := service.NewStatusEvaluator(checkResultRepo, serviceRepo)
 	incidentManager := service.NewIncidentManager(incidentRepo)
@@ -68,6 +74,7 @@ func NewRouter(cfg *config.Config, pool *pgxpool.Pool) http.Handler {
 			r.Get("/org/api-keys", authHandler.ListAPIKeys)
 			r.Delete("/org/api-keys/{keyID}", authHandler.RevokeAPIKey)
 			r.Get("/services", serviceHandler.List)
+			r.Post("/services", serviceHandler.Register)
 			r.Get("/services/{serviceID}", serviceHandler.Detail)
 			r.Post("/onboarding", onboardingHandler.Complete)
 			r.Get("/onboarding", onboardingHandler.Status)

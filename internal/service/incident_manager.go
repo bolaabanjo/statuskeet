@@ -44,6 +44,11 @@ func (m *IncidentManager) handleFailure(ctx context.Context, t StatusTransition)
 		newSeverity := severityFromStatus(t.NewStatus)
 		oldSeverity := existing.Severity
 		if severityRank(newSeverity) > severityRank(oldSeverity) {
+			if err := m.incidentRepo.UpdateSeverity(ctx, existing.ID, newSeverity); err != nil {
+				slog.Error("failed to update incident severity", "incident_id", existing.ID, "error", err)
+				return
+			}
+
 			msg := fmt.Sprintf("Severity escalated: %s is now experiencing %s (was %s)",
 				t.Service.Name, humanStatus(t.NewStatus), humanStatus(t.OldStatus))
 

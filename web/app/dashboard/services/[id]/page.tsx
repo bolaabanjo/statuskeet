@@ -77,7 +77,7 @@ export default function ServiceDetailPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-lg font-semibold text-foreground font-heading">{service.name}</h1>
+          <h1 className="text-lg font-semibold text-foreground font-heading italic">{service.name}</h1>
           {service.url && (
             <p className="text-xs text-muted-foreground mt-0.5">{service.url}</p>
           )}
@@ -91,7 +91,7 @@ export default function ServiceDetailPage() {
       </div>
 
       {/* Stats */}
-      <BlockBorder cols={4} crosses={false} className="rounded-lg mb-6">
+      <BlockBorder cols={4} crosses={false} className="rounded-none mb-6">
         <div className="grid grid-cols-2 sm:grid-cols-4">
           <div className="p-3 sm:p-4">
             <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground block mb-1">Uptime</span>
@@ -122,7 +122,7 @@ export default function ServiceDetailPage() {
             {totalChecks} checks
           </span>
         </div>
-        <BlockBorder crosses className="rounded-lg p-4">
+        <BlockBorder crosses className="rounded-none p-4">
           <UptimeBars uptime={uptimeData} />
           <div className="flex items-center justify-between mt-2">
             <span className="text-[10px] text-muted-foreground">90 days ago</span>
@@ -141,8 +141,8 @@ export default function ServiceDetailPage() {
             Last {checks.length}
           </span>
         </div>
-        <BlockBorder crosses className="rounded-lg overflow-hidden">
-          <div className="grid grid-cols-[1fr_80px_80px_80px] gap-4 px-4 py-2 border-b border-white/[0.06]">
+        <BlockBorder crosses className="rounded-none overflow-hidden">
+          <div className="grid grid-cols-[1fr_80px_80px_80px] gap-4 px-4 py-2 border-b border-border">
             <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Time</span>
             <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Status</span>
             <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hidden sm:block">Response</span>
@@ -212,7 +212,7 @@ function CheckRow({ check, isLast }: { check: CheckResult; isLast: boolean }) {
   };
 
   return (
-    <div className={`grid grid-cols-[1fr_80px_80px_80px] gap-4 items-center px-4 py-2.5 ${!isLast ? "border-b border-white/[0.06]" : ""}`}>
+    <div className={`grid grid-cols-[1fr_80px_80px_80px] gap-4 items-center px-4 py-2.5 ${!isLast ? "border-b border-border" : ""}`}>
       <span className="text-[11px] text-muted-foreground">
         {new Date(check.checked_at).toLocaleString()}
       </span>

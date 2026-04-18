@@ -6,6 +6,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { login } from "@/lib/api";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -32,59 +36,63 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background px-4 font-sans">
+    <div className="flex items-center justify-center min-h-screen bg-background px-4 font-sans text-foreground">
       <div className="w-full max-w-sm text-center">
         <Image src="/logo.png" alt="StatusKeet" width={28} height={28} className="mx-auto mb-4" />
-        <h1 className="text-lg font-semibold text-white mb-1">
+        <h1 className="text-2xl font-bold text-foreground font-heading italic mb-1">
           Welcome back
         </h1>
-        <p className="text-sm text-muted-foreground mb-8">
+        <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-10">
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="text-foreground underline underline-offset-2 hover:text-white transition">
+          <Link href="/signup" className="text-foreground underline underline-offset-4 hover:text-primary transition">
             Sign up
           </Link>
         </p>  
 
-        <form onSubmit={handleSubmit} className="text-left">
+        <form onSubmit={handleSubmit} className="text-left space-y-4">
           {error && (
-            <div className="p-2.5 text-sm text-red-400 bg-red-500/10 rounded-lg mb-4">
+            <div className="p-3 text-xs text-destructive border border-destructive/20 bg-destructive/5 rounded-none mb-6 text-center">
               {error}
             </div>
           )}
 
-          <label htmlFor="email" className="block text-sm text-foreground mb-1.5">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-muted rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-muted-foreground/50 transition mb-4"
-            placeholder="m@example.com"
-          />
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-muted-foreground">
+              Email
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="m@example.com"
+              className="h-10 bg-muted/20 border-border text-foreground rounded-none focus-visible:ring-primary/50"
+            />
+          </div>
 
-          <label htmlFor="password" className="block text-sm text-foreground mb-1.5">
-            Password
-          </label>
-          <input
-            id="password"
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-muted rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-muted-foreground/50 transition mb-6"
-            placeholder="Enter your password"
-          />
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-muted-foreground">
+              Password
+            </Label>
+            <Input
+              id="password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              className="h-10 bg-muted/20 border-border text-foreground rounded-none focus-visible:ring-primary/50"
+            />
+          </div>
 
-          <button
+          <Button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 bg-green-500 text-sm text-black font-medium rounded-lg hover:bg-green-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-11 mt-6"
           >
             {loading ? "Signing in..." : "Sign In"}
-          </button>
+          </Button>
         </form>
 
         <p className="mt-8 text-xs text-muted-foreground">

@@ -39,14 +39,14 @@ export function Avatar({
       <img
         src={src}
         alt={name}
-        className={`${sizes[size]} rounded-full object-cover ${className}`}
+        className={`${sizes[size]} rounded-none object-cover ${className}`}
       />
     );
   }
 
   return (
     <div
-      className={`${sizes[size]} ${variants[variant]} rounded flex items-center justify-center font-bold shrink-0 ${className}`}
+      className={`${sizes[size]} ${variants[variant]} rounded-none border border-border/10 flex items-center justify-center font-bold shrink-0 ${className}`}
     >
       {initials}
     </div>

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -24,7 +25,7 @@ func NewServiceHandler(serviceRepo *repository.ServiceRepo, checkResultRepo *rep
 }
 
 func (h *ServiceHandler) Register(w http.ResponseWriter, r *http.Request) {
-	orgID, err := middleware.GetOrgID(r.Context())
+	orgID, err := h.resolveOrgID(r.Context())
 	if err != nil {
 		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 		return
@@ -184,4 +185,22 @@ func defaultStr(v, d string) string {
 		return v
 	}
 	return d
+}
+
+func (h *ServiceHandler) resolveOrgID(ctx context.Context) (uuid.UUID, error) {
+	if orgID, err := middleware.GetOrgID(ctx); err == nil {
+		return orgID, nil
+	}
+
+	userID, err := middleware.GetUserID(ctx)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	orgs, err := h.orgRepo.GetUserOrgs(ctx, userID)
+	if err != nil || len(orgs) == 0 {
+		return uuid.Nil, fmt.Errorf("organization not found")
+	}
+
+	return orgs[0].ID, nil
 }

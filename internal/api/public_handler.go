@@ -169,26 +169,28 @@ type ServiceWithUptime struct {
 }
 
 type PublicStatusResponse struct {
-	Organization    models.Organization     `json:"organization"`
-	OverallStatus   string                  `json:"overall_status"`
-	StatusMessage   string                  `json:"status_message"`
-	Services        []ServiceWithUptime     `json:"services"`
+	Organization    models.Organization      `json:"organization"`
+	OverallStatus   string                   `json:"overall_status"`
+	StatusMessage   string                   `json:"status_message"`
+	Services        []ServiceWithUptime      `json:"services"`
 	ActiveIncidents []PublicIncidentResponse `json:"active_incidents"`
 }
 
 type PublicIncidentResponse struct {
-	Incident models.Incident          `json:"incident"`
-	Updates  []models.IncidentUpdate  `json:"updates"`
+	Incident models.Incident         `json:"incident"`
+	Updates  []models.IncidentUpdate `json:"updates"`
 }
 
 func overallStatus(services []models.Service) string {
 	if len(services) == 0 {
-		return "operational"
+		return "unknown"
 	}
 
 	hasDegraded := false
 	hasPartial := false
 	hasMajor := false
+	hasOperational := false
+	hasUnknown := false
 
 	for _, s := range services {
 		switch s.CurrentStatus {
@@ -198,6 +200,10 @@ func overallStatus(services []models.Service) string {
 			hasPartial = true
 		case "degraded":
 			hasDegraded = true
+		case "operational":
+			hasOperational = true
+		default:
+			hasUnknown = true
 		}
 	}
 
@@ -209,6 +215,9 @@ func overallStatus(services []models.Service) string {
 	}
 	if hasDegraded {
 		return "degraded"
+	}
+	if hasUnknown && !hasOperational {
+		return "unknown"
 	}
 	return "operational"
 }
@@ -223,6 +232,8 @@ func statusMessage(status string) string {
 		return "Partial System Outage"
 	case "major_outage":
 		return "Major System Outage"
+	case "unknown":
+		return "Monitoring Starting"
 	default:
 		return "Unknown"
 	}

@@ -58,16 +58,29 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const avatarMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/login");
-      return;
+    let cancelled = false;
+
+    async function loadSession() {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        router.push("/login");
+        return;
+      }
+
+      const orgData = localStorage.getItem("org");
+      const userData = localStorage.getItem("user");
+
+      if (!cancelled) {
+        if (orgData) setOrg(JSON.parse(orgData));
+        if (userData) setUser(JSON.parse(userData));
+      }
     }
 
-    const orgData = localStorage.getItem("org");
-    const userData = localStorage.getItem("user");
-    if (orgData) setOrg(JSON.parse(orgData));
-    if (userData) setUser(JSON.parse(userData));
+    void loadSession();
+
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   useEffect(() => {
@@ -85,7 +98,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   // Close mobile sidebar on route change
   useEffect(() => {
-    setSidebarOpen(false);
+    queueMicrotask(() => {
+      setSidebarOpen(false);
+    });
   }, [pathname]);
 
   function handleLogout() {
@@ -103,7 +118,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
       {/* Top Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-40 border-b border-white/[0.06] bg-background">
+      <nav className="fixed top-0 left-0 right-0 z-40 border-b border-border bg-background">
         <div className="px-4 h-12 flex items-center justify-between">
           {/* Left: hamburger + breadcrumb */}
           <div className="flex items-center gap-0">
@@ -119,7 +134,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             </button>
 
             <Link href="/" className="flex items-center pr-2.5">
-              <Image src="/s.png" alt="StatusKeet" width={20} height={20} />
+              <Image src="/logo.png" alt="StatusKeet" width={20} height={20} />
             </Link>
 
             <span className="text-white/10 text-lg select-none">/</span>
@@ -128,9 +143,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <div className="relative" ref={orgMenuRef}>
               <button
                 onClick={() => setOrgMenuOpen(!orgMenuOpen)}
-                className="flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 rounded-md hover:bg-white/[0.04] transition"
+                className="flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 rounded-none hover:bg-white/[0.04] transition"
               >
-                <span className="text-[13px] font-semibold text-foreground font-heading truncate max-w-[140px] sm:max-w-none">
+                <span className="text-[13px] font-semibold text-foreground font-heading italic truncate max-w-[140px] sm:max-w-none">
                   {org?.name || "Organization"}
                 </span>
                 <span className="text-[9px] font-medium text-muted-foreground bg-white/[0.06] px-1.5 py-0.5 rounded uppercase tracking-wider hidden sm:inline">
@@ -143,21 +158,21 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               </button>
 
               {orgMenuOpen && (
-                <div className="absolute top-full left-0 mt-1 w-56 bg-muted border border-white/[0.06] rounded-lg shadow-xl z-50 py-1">
-                  <div className="px-3 py-2 border-b border-white/[0.06]">
+                <div className="absolute top-full left-0 mt-1 w-56 bg-background border border-border rounded-none z-50 py-1 shadow-2xl">
+                  <div className="px-3 py-2 border-b border-border">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Organization</p>
                   </div>
                   <div className="p-1">
-                    <div className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-white/[0.04]">
-                      <Avatar name={org?.name || "O"} size="xs" variant="green" />
+                    <div className="flex items-center gap-2 px-2 py-1.5 rounded-none bg-white/[0.04]">
+                      <Avatar name={org?.name || "O"} size="xs" variant="green" className="rounded-none font-sans" />
                       <span className="text-xs text-foreground font-medium">{org?.name}</span>
                       <svg className="w-3.5 h-3.5 text-green-400 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
                   </div>
-                  <div className="border-t border-white/[0.06] p-1 mt-1">
-                    <button className="w-full text-left px-2 py-1.5 rounded-md text-xs text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition">
+                  <div className="border-t border-border p-1 mt-1">
+                    <button className="w-full text-left px-2 py-1.5 rounded-none text-xs text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition">
                       Create organization
                     </button>
                   </div>
@@ -191,8 +206,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 </button>
 
                 {avatarMenuOpen && (
-                  <div className="absolute top-full right-0 mt-1.5 w-60 bg-muted border border-white/[0.06] rounded-lg shadow-xl z-50 py-1">
-                    <div className="px-3 py-2.5 border-b border-white/[0.06]">
+                  <div className="absolute top-full right-0 mt-1.5 w-60 bg-background border border-border rounded-none z-50 py-1 shadow-2xl">
+                    <div className="px-3 py-2.5 border-b border-border">
                       <p className="text-sm font-medium text-foreground">{user.name}</p>
                       {user.email && (
                         <p className="text-[11px] text-muted-foreground mt-0.5">{user.email}</p>
@@ -201,7 +216,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                     <div className="p-1">
                       <Link
                         href="/dashboard/settings"
-                        className="flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition"
+                        className="flex items-center gap-2 px-2 py-1.5 rounded-none text-xs text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition"
                         onClick={() => setAvatarMenuOpen(false)}
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -210,17 +225,17 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                         </svg>
                         Settings
                       </Link>
-                      <button className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition">
+                      <button className="w-full flex items-center gap-2 px-2 py-1.5 rounded-none text-xs text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
                         </svg>
                         Theme
                       </button>
                     </div>
-                    <div className="border-t border-white/[0.06] p-1">
+                    <div className="border-t border-border p-1">
                       <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-muted-foreground hover:text-red-400 hover:bg-white/[0.04] transition"
+                        className="w-full flex items-center gap-2 px-2 py-1.5 rounded-none text-xs text-muted-foreground hover:text-red-400 hover:bg-white/[0.04] transition"
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
@@ -246,7 +261,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-12 bottom-0 left-0 z-30 w-52 border-r border-white/[0.06] bg-background transition-transform duration-200 lg:translate-x-0 ${
+        className={`fixed top-12 bottom-0 left-0 z-30 w-52 border-r border-border bg-background transition-transform duration-200 lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -258,13 +273,13 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-xs transition ${
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-none text-xs transition border-l-2 ${
                     active
-                      ? "text-foreground bg-white/[0.06] font-medium"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/[0.03]"
+                      ? "text-foreground bg-white/[0.04] border-primary font-bold shadow-[2px_0_10px_rgba(34,197,94,0.05)]"
+                      : "text-muted-foreground border-transparent hover:text-foreground hover:bg-white/[0.02]"
                   }`}
                 >
-                  <span className={active ? "text-green-400" : "text-muted-foreground"}>{item.icon}</span>
+                  <span className={active ? "text-primary" : "text-muted-foreground"}>{item.icon}</span>
                   {item.label}
                 </Link>
               );
@@ -272,11 +287,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           {/* Sidebar footer */}
-          <div className="px-3 py-4 border-t border-white/[0.06]">
+          <div className="px-3 py-4 border-t border-border">
             {org?.slug && (
               <Link
                 href={`/s/${org.slug}`}
-                className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-xs text-muted-foreground hover:text-foreground hover:bg-white/[0.03] transition"
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-none text-xs text-muted-foreground hover:text-foreground hover:bg-white/[0.02] transition border border-border/20"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />

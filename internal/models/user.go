@@ -11,6 +11,8 @@ type User struct {
 	Email        string    `json:"email"`
 	PasswordHash string    `json:"-"`
 	Name         string    `json:"name"`
+	AuthProvider string    `json:"-"`
+	AuthUserID   string    `json:"-"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
@@ -45,10 +47,10 @@ type APIKey struct {
 // Request/response types
 
 type SignupRequest struct {
-	Email   string `json:"email"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
-	Name    string `json:"name"`
-	OrgName string `json:"org_name"`
+	Name     string `json:"name"`
+	OrgName  string `json:"org_name"`
 }
 
 type LoginRequest struct {

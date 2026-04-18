@@ -66,11 +66,11 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
       {/* Nav */}
-      <nav className="fixed top-0 w-full bg-background/80 backdrop-blur-md z-50 border-b border-white/[0.06]">
+      <nav className="fixed top-0 w-full bg-background/80 backdrop-blur-md z-50 border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-10 h-11 flex items-center justify-between">
           <div className="flex items-center gap-6 sm:gap-10">
             <Link href="/" className="flex items-center gap-2">
-              <Image src="/s.png" alt="StatusKeet" width={24} height={24} />
+              <Image src="/logo.png" alt="StatusKeet" width={24} height={24} />
               <span className="text-xs font-bold uppercase tracking-widest text-white">
                 StatusKeet
               </span>
@@ -90,7 +90,7 @@ export default function PricingPage() {
           <div className="hidden md:flex items-center gap-3">
             <Link
               href="/login"
-              className="text-[11px] font-medium h-7 px-3 inline-flex items-center rounded border border-white/[0.06] text-foreground hover:text-white transition uppercase tracking-wider"
+              className="text-[11px] font-medium h-7 px-3 inline-flex items-center rounded border border-border text-foreground hover:text-white transition uppercase tracking-wider"
             >
               Sign In
             </Link>
@@ -106,13 +106,13 @@ export default function PricingPage() {
       </nav>
 
       {/* Main container with outer border rails */}
-      <div className="max-w-6xl mx-auto md:border-x border-white/[0.06]">
+      <div className="max-w-6xl mx-auto md:border-x border-border">
         {/* Header */}
         <section className="pt-20 sm:pt-24 pb-10 sm:pb-14 px-4 sm:px-8 text-center">
           <span className="text-[10px] uppercase tracking-[0.2em] text-green-400 block mb-2">
             Pricing
           </span>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white font-heading mb-3">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white font-heading italic mb-3">
             Free for side projects. Scales with you.
           </h1>
           <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
@@ -144,16 +144,16 @@ export default function PricingPage() {
 
                 <Link
                   href={tier.href}
-                  className={`block text-center text-[11px] font-medium py-2.5 rounded-lg uppercase tracking-wider transition ${
+                  className={`block text-center text-[11px] font-medium py-2.5 rounded-none uppercase tracking-wider transition ${
                     tier.featured
                       ? "bg-green-500 text-black hover:bg-green-400"
-                      : "border border-white/[0.06] text-foreground hover:text-white hover:border-white/[0.12]"
+                      : "border border-border text-foreground hover:text-white hover:border-border"
                   }`}
                 >
                   {tier.cta}
                 </Link>
 
-                <div className="mt-6 pt-6 border-t border-white/[0.06] space-y-3">
+                <div className="mt-6 pt-6 border-t border-border space-y-3">
                   {tier.features.map((feature) => (
                     <div key={feature} className="flex items-center gap-2.5">
                       <svg className="w-3.5 h-3.5 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -183,7 +183,7 @@ export default function PricingPage() {
               </div>
               <Link
                 href="mailto:hello@statuskeet.com"
-                className="shrink-0 text-[11px] font-medium h-9 px-5 inline-flex items-center rounded border border-white/[0.06] text-foreground hover:text-white hover:border-white/[0.12] transition uppercase tracking-wider"
+                className="shrink-0 text-[11px] font-medium h-9 px-5 inline-flex items-center rounded border border-border text-foreground hover:text-white hover:border-border transition uppercase tracking-wider"
               >
                 Contact Sales
               </Link>
@@ -192,9 +192,9 @@ export default function PricingPage() {
         </section>
 
         {/* FAQ */}
-        <section className="py-8 sm:py-14 border-t border-white/[0.06]">
+        <section className="py-8 sm:py-14 border-t border-border">
           <div className="px-4 sm:px-6 mb-6 sm:mb-8">
-            <h2 className="text-lg font-bold text-white font-heading text-center">
+            <h2 className="text-lg font-bold text-white font-heading italic text-center">
               Common questions
             </h2>
           </div>
@@ -229,7 +229,7 @@ export default function PricingPage() {
         </section>
 
         {/* Footer */}
-        <footer className="px-4 sm:px-6 py-5 border-t border-white/[0.06]">
+        <footer className="px-4 sm:px-6 py-5 border-t border-border">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
             <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50">
               StatusKeet v0.1

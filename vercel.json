@@ -1,0 +1,25 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "crons": [
+    {
+      "path": "/api/cron/check",
+      "schedule": "0 0 * * *"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/health",
+      "destination": "/api?path=health"
+    },
+    {
+      "source": "/api/v1/:path*",
+      "destination": "/api?path=v1/:path*"
+    }
+  ],
+  "functions": {
+    "api/**/*.go": {
+      "runtime": "vercel-go@3.0.0"
+    }
+  }
+}

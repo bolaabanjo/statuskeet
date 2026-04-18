@@ -76,6 +76,14 @@ func (r *IncidentRepo) UpdateStatus(ctx context.Context, id uuid.UUID, status st
 	return err
 }
 
+func (r *IncidentRepo) UpdateSeverity(ctx context.Context, id uuid.UUID, severity string) error {
+	_, err := r.db.Exec(ctx,
+		`UPDATE incidents SET severity = $1, updated_at = now() WHERE id = $2`,
+		severity, id,
+	)
+	return err
+}
+
 // GetActiveForService returns the most recent unresolved auto-generated incident
 // that affects the given service.
 func (r *IncidentRepo) GetActiveForService(ctx context.Context, serviceID uuid.UUID) (*models.Incident, error) {

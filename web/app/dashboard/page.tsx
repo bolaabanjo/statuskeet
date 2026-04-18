@@ -11,16 +11,31 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const org = localStorage.getItem("org");
-    const slug = org ? JSON.parse(org).slug : "";
-    if (slug) {
-      getPublicStatus(slug).then((data) => {
+    let cancelled = false;
+
+    async function loadStatus() {
+      const org = localStorage.getItem("org");
+      const slug = org ? JSON.parse(org).slug : "";
+
+      if (!slug) {
+        if (!cancelled) {
+          setLoading(false);
+        }
+        return;
+      }
+
+      const data = await getPublicStatus(slug);
+      if (!cancelled) {
         setStatusData(data);
         setLoading(false);
-      });
-    } else {
-      setLoading(false);
+      }
     }
+
+    void loadStatus();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const services = statusData?.services || [];
@@ -42,12 +57,12 @@ export default function DashboardPage() {
     <>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-        <h1 className="text-lg font-semibold text-foreground font-heading">Overview</h1>
+        <h1 className="text-lg font-semibold text-foreground font-heading italic">Overview</h1>
         <StatusPill status={overallStatus} message={statusMessage} />
       </div>
 
       {/* Stats row */}
-      <BlockBorder cols={4} rows={1} crosses={false} className="rounded-lg mb-6">
+      <BlockBorder cols={4} rows={1} crosses={false} className="rounded-none mb-6">
         <div className="grid grid-cols-2 sm:grid-cols-4">
           <StatCard label="Operational" value={operational} color="text-green-400" />
           <StatCard label="Degraded" value={degraded} color="text-yellow-400" />
@@ -66,8 +81,8 @@ export default function DashboardPage() {
             {services.length} registered
           </span>
         </div>
-        <BlockBorder crosses className="rounded-lg overflow-hidden">
-          <div className="grid grid-cols-[1fr_100px] sm:grid-cols-[1fr_100px_80px_100px] gap-4 px-4 py-2 border-b border-white/[0.06]">
+        <BlockBorder crosses className="rounded-none overflow-hidden">
+          <div className="grid grid-cols-[1fr_100px] sm:grid-cols-[1fr_100px_80px_100px] gap-4 px-4 py-2 border-b border-border">
             <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Name</span>
             <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hidden sm:block">Type</span>
             <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hidden sm:block">Priority</span>
@@ -104,7 +119,7 @@ export default function DashboardPage() {
             ))}
           </div>
         ) : (
-          <BlockBorder crosses className="rounded-lg p-6 text-center">
+          <BlockBorder crosses className="rounded-none p-6 text-center">
             <p className="text-xs text-muted-foreground">No active incidents</p>
           </BlockBorder>
         )}
@@ -132,8 +147,9 @@ function StatusPill({ status, message }: { status: string; message: string }) {
     degraded: { text: "text-yellow-400", dot: "bg-yellow-500", bg: "bg-yellow-500/10" },
     partial_outage: { text: "text-orange-400", dot: "bg-orange-500", bg: "bg-orange-500/10" },
     major_outage: { text: "text-red-400", dot: "bg-red-500", bg: "bg-red-500/10" },
+    unknown: { text: "text-muted-foreground", dot: "bg-muted-foreground", bg: "bg-white/[0.06]" },
   };
-  const cfg = config[status] || config.operational;
+  const cfg = config[status] || config.unknown;
 
   return (
     <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${cfg.bg} ${cfg.text} text-[11px] font-medium`}>
@@ -156,7 +172,7 @@ function ServiceRow({ service, isLast }: { service: ServiceWithUptime; isLast: b
   return (
     <Link
       href={`/dashboard/services/${service.id}`}
-      className={`grid grid-cols-[1fr_100px] sm:grid-cols-[1fr_100px_80px_100px] gap-4 items-center px-4 py-3 hover:bg-white/[0.02] transition ${!isLast ? "border-b border-white/[0.06]" : ""}`}
+      className={`grid grid-cols-[1fr_100px] sm:grid-cols-[1fr_100px_80px_100px] gap-4 items-center px-4 py-3 hover:bg-white/[0.02] transition ${!isLast ? "border-b border-border" : ""}`}
     >
       <div>
         <span className="text-xs font-medium text-foreground">{service.name}</span>
@@ -183,7 +199,7 @@ function IncidentCard({ data }: { data: PublicIncidentResponse }) {
   };
 
   return (
-    <div className="rounded-lg border border-white/[0.06] p-4">
+    <div className="rounded-none border border-border p-4">
       <div className="flex items-start justify-between">
         <h3 className="text-xs font-bold text-white">{incident.title}</h3>
         <span className={`text-[9px] font-bold uppercase tracking-wider ${severityColors[incident.severity] || severityColors.minor}`}>

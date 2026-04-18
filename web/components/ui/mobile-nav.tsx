@@ -10,7 +10,7 @@ export function MobileNav() {
     <div className="md:hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="p-1.5 text-muted-foreground hover:text-white transition"
+        className="p-1.5 text-muted-foreground hover:text-foreground transition"
         aria-label="Toggle menu"
       >
         {open ? (
@@ -25,40 +25,40 @@ export function MobileNav() {
       </button>
 
       {open && (
-        <div className="absolute top-11 left-0 right-0 bg-background border-b border-white/[0.06] px-4 py-4 space-y-3">
+        <div className="absolute top-11 left-0 right-0 bg-background border-b border-border px-4 py-4 space-y-3">
           <Link
             href="/docs"
             onClick={() => setOpen(false)}
-            className="block text-sm text-muted-foreground hover:text-white transition"
+            className="block text-sm text-muted-foreground hover:text-foreground transition"
           >
             Docs
           </Link>
           <Link
             href="/pricing"
             onClick={() => setOpen(false)}
-            className="block text-sm text-muted-foreground hover:text-white transition"
+            className="block text-sm text-muted-foreground hover:text-foreground transition"
           >
             Pricing
           </Link>
           <Link
             href="/changelog"
             onClick={() => setOpen(false)}
-            className="block text-sm text-muted-foreground hover:text-white transition"
+            className="block text-sm text-muted-foreground hover:text-foreground transition"
           >
             Changelog
           </Link>
-          <div className="border-t border-white/[0.06] pt-3 flex items-center gap-3">
+          <div className="border-t border-border pt-4 flex flex-col gap-2">
             <Link
               href="/login"
               onClick={() => setOpen(false)}
-              className="text-[11px] font-medium h-7 px-3 inline-flex items-center rounded border border-white/[0.06] text-foreground hover:text-white transition uppercase tracking-wider"
+              className="text-[11px] font-bold h-9 px-4 inline-flex items-center justify-center rounded-none border border-border text-foreground hover:bg-foreground/5 transition uppercase tracking-widest"
             >
               Sign In
             </Link>
             <Link
               href="/signup"
               onClick={() => setOpen(false)}
-              className="text-[11px] font-medium h-7 px-3 inline-flex items-center rounded bg-green-500 text-black hover:bg-green-400 transition uppercase tracking-wider"
+              className="text-[11px] font-bold h-9 px-4 inline-flex items-center justify-center rounded-none bg-foreground text-background hover:bg-foreground/90 transition uppercase tracking-widest"
             >
               Sign Up
             </Link>

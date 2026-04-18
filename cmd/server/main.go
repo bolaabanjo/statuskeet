@@ -12,6 +12,9 @@ import (
 	"github.com/bolaabanjo/statuskeet/internal/api"
 	"github.com/bolaabanjo/statuskeet/internal/config"
 	"github.com/bolaabanjo/statuskeet/internal/database"
+	"github.com/bolaabanjo/statuskeet/internal/monitor"
+	"github.com/bolaabanjo/statuskeet/internal/repository"
+	"github.com/bolaabanjo/statuskeet/internal/service"
 )
 
 func main() {
@@ -36,6 +39,16 @@ func main() {
 	}
 	defer pool.Close()
 	slog.Info("connected to database")
+
+	// Initialize dependencies for monitoring worker
+	serviceRepo := repository.NewServiceRepo(pool)
+	checkResultRepo := repository.NewCheckResultRepo(pool)
+	incidentRepo := repository.NewIncidentRepo(pool)
+	statusEvaluator := service.NewStatusEvaluator(checkResultRepo, serviceRepo)
+	incidentManager := service.NewIncidentManager(incidentRepo)
+
+	monitorWorker := monitor.NewMonitorWorker(serviceRepo, checkResultRepo, statusEvaluator, incidentManager)
+	go monitorWorker.Start(ctx)
 
 	router := api.NewRouter(cfg, pool)
 

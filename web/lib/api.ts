@@ -1,4 +1,38 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+function trimTrailingSlash(value: string): string {
+  return value.replace(/\/+$/, "");
+}
+
+function getAPIBaseURL(): string {
+  if (typeof window !== "undefined") {
+    return trimTrailingSlash(process.env.NEXT_PUBLIC_API_URL || "/api");
+  }
+
+  const directAPIBase =
+    process.env.INTERNAL_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_API_URL;
+  if (directAPIBase) {
+    return trimTrailingSlash(directAPIBase);
+  }
+
+  const siteBase =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL;
+  if (siteBase) {
+    return `${trimTrailingSlash(siteBase)}/api`;
+  }
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}/api`;
+  }
+
+  return "http://localhost:3000/api";
+}
+
+const API_URL = getAPIBaseURL();
+
+function apiURL(path: string): string {
+  return `${API_URL}${path}`;
+}
 
 export interface Organization {
   id: string;
@@ -73,7 +107,7 @@ export interface AuthResponse {
 
 export async function getPublicStatus(slug: string): Promise<PublicStatusResponse | null> {
   try {
-    const res = await fetch(`${API_URL}/v1/public/${slug}/status`, {
+    const res = await fetch(apiURL(`/v1/public/${slug}/status`), {
       cache: "no-store",
     });
     if (!res.ok) return null;
@@ -87,7 +121,7 @@ export async function getPublicIncidents(
   slug: string
 ): Promise<PublicIncidentResponse[]> {
   try {
-    const res = await fetch(`${API_URL}/v1/public/${slug}/incidents`, {
+    const res = await fetch(apiURL(`/v1/public/${slug}/incidents`), {
       cache: "no-store",
     });
     if (!res.ok) return [];
@@ -102,7 +136,7 @@ export async function login(
   email: string,
   password: string
 ): Promise<AuthResponse> {
-  const res = await fetch(`${API_URL}/v1/auth/login`, {
+  const res = await fetch(apiURL("/v1/auth/login"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -120,7 +154,7 @@ export async function signup(
   password: string,
   orgName: string,
 ): Promise<AuthResponse> {
-  const res = await fetch(`${API_URL}/v1/auth/signup`, {
+  const res = await fetch(apiURL("/v1/auth/signup"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, email, password, org_name: orgName }),
@@ -144,7 +178,7 @@ export async function completeOnboarding(
   token: string,
   data: OnboardingRequest
 ): Promise<void> {
-  const res = await fetch(`${API_URL}/v1/onboarding`, {
+  const res = await fetch(apiURL("/v1/onboarding"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -161,7 +195,7 @@ export async function completeOnboarding(
 export async function getOnboardingStatus(
   token: string
 ): Promise<{ completed: boolean }> {
-  const res = await fetch(`${API_URL}/v1/onboarding`, {
+  const res = await fetch(apiURL("/v1/onboarding"), {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
@@ -188,7 +222,7 @@ export async function createAPIKey(
   token: string,
   name: string
 ): Promise<CreateAPIKeyResponse> {
-  const res = await fetch(`${API_URL}/v1/org/api-keys`, {
+  const res = await fetch(apiURL("/v1/org/api-keys"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -204,7 +238,7 @@ export async function createAPIKey(
 }
 
 export async function listAPIKeys(token: string): Promise<APIKey[]> {
-  const res = await fetch(`${API_URL}/v1/org/api-keys`, {
+  const res = await fetch(apiURL("/v1/org/api-keys"), {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
@@ -217,7 +251,7 @@ export async function revokeAPIKey(
   token: string,
   keyId: string
 ): Promise<void> {
-  const res = await fetch(`${API_URL}/v1/org/api-keys/${keyId}`, {
+  const res = await fetch(apiURL(`/v1/org/api-keys/${keyId}`), {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -228,11 +262,39 @@ export async function revokeAPIKey(
 }
 
 export async function getServices(token: string): Promise<Service[]> {
-  const res = await fetch(`${API_URL}/v1/services`, {
+  const res = await fetch(apiURL("/v1/services"), {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
   if (!res.ok) return [];
+  const data = await res.json();
+  return data.services;
+}
+
+export interface RegisterServiceRequest {
+  name: string;
+  type: string;
+  url?: string;
+  check_interval?: number;
+  criticality?: string;
+}
+
+export async function registerServices(
+  token: string,
+  services: RegisterServiceRequest[]
+): Promise<Service[]> {
+  const res = await fetch(apiURL("/v1/services"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ services }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || "Failed to register services");
+  }
   const data = await res.json();
   return data.services;
 }
@@ -259,7 +321,7 @@ export async function getServiceDetail(
   token: string,
   serviceId: string
 ): Promise<ServiceDetailResponse | null> {
-  const res = await fetch(`${API_URL}/v1/services/${serviceId}`, {
+  const res = await fetch(apiURL(`/v1/services/${serviceId}`), {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
