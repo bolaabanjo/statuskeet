@@ -4,14 +4,11 @@ function trimTrailingSlash(value: string): string {
 
 function getAPIBaseURL(): string {
   if (typeof window !== "undefined") {
-    return trimTrailingSlash(process.env.NEXT_PUBLIC_API_URL || "/api");
+    return "/api";
   }
 
-  const directAPIBase =
-    process.env.INTERNAL_API_BASE_URL ||
-    process.env.NEXT_PUBLIC_API_URL;
-  if (directAPIBase) {
-    return trimTrailingSlash(directAPIBase);
+  if (process.env.INTERNAL_API_BASE_URL) {
+    return trimTrailingSlash(process.env.INTERNAL_API_BASE_URL);
   }
 
   const siteBase =
@@ -23,6 +20,10 @@ function getAPIBaseURL(): string {
 
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}/api`;
+  }
+
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return trimTrailingSlash(process.env.NEXT_PUBLIC_API_URL);
   }
 
   return "http://localhost:3000/api";
