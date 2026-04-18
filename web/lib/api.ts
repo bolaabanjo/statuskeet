@@ -4,6 +4,9 @@ function trimTrailingSlash(value: string): string {
 
 function getAPIBaseURL(): string {
   if (typeof window !== "undefined") {
+    if (process.env.NEXT_PUBLIC_API_URL) {
+      return trimTrailingSlash(process.env.NEXT_PUBLIC_API_URL);
+    }
     return "/api";
   }
 
@@ -33,6 +36,33 @@ const API_URL = getAPIBaseURL();
 
 function apiURL(path: string): string {
   return `${API_URL}${path}`;
+}
+
+async function readErrorMessage(res: Response, fallback: string): Promise<string> {
+  const contentType = res.headers.get("content-type") || "";
+  const text = await res.text();
+
+  if (contentType.includes("application/json")) {
+    try {
+      const data = JSON.parse(text) as { error?: string };
+      if (data.error) {
+        return data.error;
+      }
+    } catch {
+      // Fall through to the plain-text handling below.
+    }
+  }
+
+  const trimmed = text.trim();
+  if (trimmed.startsWith("<!DOCTYPE") || trimmed.startsWith("<html")) {
+    return `${fallback} (received HTML ${res.status}; check API routing/deployment)`;
+  }
+
+  if (trimmed !== "") {
+    return trimmed;
+  }
+
+  return fallback;
 }
 
 export interface Organization {
@@ -143,8 +173,7 @@ export async function login(
     body: JSON.stringify({ email, password }),
   });
   if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error || "Login failed");
+    throw new Error(await readErrorMessage(res, "Login failed"));
   }
   return res.json();
 }
@@ -161,8 +190,7 @@ export async function signup(
     body: JSON.stringify({ name, email, password, org_name: orgName }),
   });
   if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error || "Signup failed");
+    throw new Error(await readErrorMessage(res, "Signup failed"));
   }
   return res.json();
 }
@@ -188,8 +216,7 @@ export async function completeOnboarding(
     body: JSON.stringify(data),
   });
   if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error || "Failed to save onboarding");
+    throw new Error(await readErrorMessage(res, "Failed to save onboarding"));
   }
 }
 
@@ -232,8 +259,7 @@ export async function createAPIKey(
     body: JSON.stringify({ name }),
   });
   if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error || "Failed to create API key");
+    throw new Error(await readErrorMessage(res, "Failed to create API key"));
   }
   return res.json();
 }
@@ -257,8 +283,7 @@ export async function revokeAPIKey(
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error || "Failed to revoke API key");
+    throw new Error(await readErrorMessage(res, "Failed to revoke API key"));
   }
 }
 
