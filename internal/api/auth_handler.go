@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -36,6 +37,7 @@ func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := h.authService.Signup(r.Context(), req)
 	if err != nil {
+		slog.Error("signup failed", "email", req.Email, "error", err)
 		switch {
 		case errors.Is(err, service.ErrEmailTaken):
 			writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
@@ -63,6 +65,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := h.authService.Login(r.Context(), req)
 	if err != nil {
+		slog.Error("login failed", "email", req.Email, "error", err)
 		if errors.Is(err, service.ErrInvalidCredentials) {
 			writeJSON(w, http.StatusUnauthorized, map[string]string{"error": err.Error()})
 		} else {

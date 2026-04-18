@@ -19,7 +19,7 @@ func NewUserRepo(db database.Querier) *UserRepo {
 func (r *UserRepo) Create(ctx context.Context, email, passwordHash, name string) (*models.User, error) {
 	user := &models.User{}
 	err := r.db.QueryRow(ctx,
-		`INSERT INTO users (email, password_hash, name, auth_provider) VALUES ($1, $2, $3, 'legacy')
+		`INSERT INTO public.users (email, password_hash, name, auth_provider) VALUES ($1, $2, $3, 'legacy')
 		 RETURNING id, email, COALESCE(password_hash, ''), name, auth_provider, COALESCE(auth_user_id, ''), created_at, updated_at`,
 		email, passwordHash, name,
 	).Scan(
@@ -41,7 +41,7 @@ func (r *UserRepo) Create(ctx context.Context, email, passwordHash, name string)
 func (r *UserRepo) CreateFromAuth(ctx context.Context, email, name, provider, authUserID string) (*models.User, error) {
 	user := &models.User{}
 	err := r.db.QueryRow(ctx,
-		`INSERT INTO users (email, password_hash, name, auth_provider, auth_user_id)
+		`INSERT INTO public.users (email, password_hash, name, auth_provider, auth_user_id)
 		 VALUES ($1, NULL, $2, $3, $4)
 		 RETURNING id, email, COALESCE(password_hash, ''), name, auth_provider, COALESCE(auth_user_id, ''), created_at, updated_at`,
 		email, name, provider, authUserID,
@@ -65,7 +65,7 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*models.User, 
 	user := &models.User{}
 	err := r.db.QueryRow(ctx,
 		`SELECT id, email, COALESCE(password_hash, ''), name, auth_provider, COALESCE(auth_user_id, ''), created_at, updated_at
-		 FROM users WHERE email = $1`,
+		 FROM public.users WHERE email = $1`,
 		email,
 	).Scan(
 		&user.ID,
@@ -87,7 +87,7 @@ func (r *UserRepo) GetByID(ctx context.Context, id uuid.UUID) (*models.User, err
 	user := &models.User{}
 	err := r.db.QueryRow(ctx,
 		`SELECT id, email, COALESCE(password_hash, ''), name, auth_provider, COALESCE(auth_user_id, ''), created_at, updated_at
-		 FROM users WHERE id = $1`,
+		 FROM public.users WHERE id = $1`,
 		id,
 	).Scan(
 		&user.ID,
@@ -109,7 +109,7 @@ func (r *UserRepo) GetByAuthIdentity(ctx context.Context, provider, authUserID s
 	user := &models.User{}
 	err := r.db.QueryRow(ctx,
 		`SELECT id, email, COALESCE(password_hash, ''), name, auth_provider, COALESCE(auth_user_id, ''), created_at, updated_at
-		 FROM users
+		 FROM public.users
 		 WHERE auth_provider = $1 AND auth_user_id = $2`,
 		provider, authUserID,
 	).Scan(
@@ -131,7 +131,7 @@ func (r *UserRepo) GetByAuthIdentity(ctx context.Context, provider, authUserID s
 func (r *UserRepo) LinkAuthIdentity(ctx context.Context, id uuid.UUID, email, name, provider, authUserID string) (*models.User, error) {
 	user := &models.User{}
 	err := r.db.QueryRow(ctx,
-		`UPDATE users
+		`UPDATE public.users
 		 SET email = $2,
 		     name = $3,
 		     auth_provider = $4,
